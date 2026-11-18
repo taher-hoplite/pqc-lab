@@ -6,12 +6,16 @@
   var page = body.getAttribute('data-page') || '';
 
   var PAGES = [
-    { id: 'home', href: 'index.html',    label: 'Accueil',           short: 'Accueil', sub: 'Vue d’ensemble' },
-    { id: 'iot',  href: 'iot.html',      label: 'Objets contraints', short: 'IoT',     sub: 'Tailles, radio, énergie' },
-    { id: 'ot',   href: 'ot-it.html',    label: 'OT vs IT',          short: 'OT/IT',   sub: 'Durée de vie, protocoles, Purdue' },
-    { id: 'iec',  href: 'iec62443.html', label: 'IEC 62443',         short: '62443',   sub: 'La norme, partie par partie' },
-    { id: 'rev',  href: 'reviser.html',  label: 'Réviser',           short: 'Réviser', sub: 'Fiches, chiffres, glossaire' }
+    { id: 'home', href: 'index.html',       label: 'Accueil',    short: 'Accueil', sub: 'Vue d’ensemble' },
+    { id: 'comp', href: 'comprendre.html',  label: 'Comprendre', short: 'Base',    sub: 'LWE, hybride, temps de calcul, chronologie' },
+    { id: 'iot',  href: 'iot.html',         label: 'Objets',     short: 'IoT',     sub: 'Objets contraints : tailles, radio, énergie' },
+    { id: 'ot',   href: 'ot-it.html',       label: 'OT vs IT',   short: 'OT/IT',   sub: 'Durée de vie, protocoles, Purdue' },
+    { id: 'iec',  href: 'iec62443.html',    label: 'IEC 62443',  short: '62443',   sub: 'La norme, partie par partie' },
+    { id: 'inv',  href: 'inventaire.html',  label: 'Inventaire', short: 'CBOM',    sub: 'Inventaire cryptographique (CBOM)' },
+    { id: 'fw',   href: 'firmware.html',    label: 'Firmware',   short: 'Firmware', sub: 'Signer, démarrer, mettre à jour' },
+    { id: 'rev',  href: 'reviser.html',     label: 'Réviser',    short: 'Réviser', sub: 'Fiches, chiffres, glossaire' }
   ];
+  var TABS = ['home', 'iot', 'ot', 'iec'];
 
   var I = {
     home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
@@ -19,6 +23,10 @@
     ot: '<path d="M3 20V9l6 4V9l6 4V5h6v15z"/>',
     iec: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
     rev: '<rect x="4" y="5" width="16" height="14" rx="1"/><path d="M8 10h8M8 14h5"/>',
+    comp: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5V16h8v-2.5A6 6 0 0 0 12 3z"/>',
+    inv: '<path d="M4 6h16M4 12h16M4 18h10"/>',
+    fw: '<rect x="5" y="5" width="14" height="14"/><path d="M9 9h6v6H9zM9 2v3M15 2v3M9 19v3M15 19v3"/>',
+    more: '<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>',
     sliders: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
     menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
     up: '<path d="M12 19V5M5 12l7-7 7 7"/>'
@@ -68,6 +76,7 @@
         '<div class="grp"><h4>Niveau de lecture</h4><div class="seg" data-seg="level">' +
         '<button type="button" data-v="1">Essentiel</button><button type="button" data-v="2">Approfondi</button><button type="button" data-v="3">Expert</button></div>' +
         '<p>Essentiel : l’idée et les chiffres clés. Approfondi : le mécanisme. Expert : détails d’implémentation et limites des sources.</p></div>' +
+        '<div class="grp"><h4>Hors ligne</h4><p id="offline-state" style="margin-top:0">Vérification…</p></div>' +
         '</div>';
     }
     var sh = document.getElementById('site-sheet');
@@ -78,7 +87,9 @@
     var tb = document.getElementById('site-tabbar');
     if (tb) {
       tb.className = 'tabbar'; tb.setAttribute('aria-label', 'Navigation');
-      tb.innerHTML = PAGES.map(function (p) { return '<a href="' + p.href + '"' + (p.id === page ? ' aria-current="page"' : '') + '>' + svg(p.id) + '<span>' + p.short + '</span></a>'; }).join('');
+      tb.innerHTML = PAGES.filter(function (p) { return TABS.indexOf(p.id) > -1; }).map(function (p) {
+        return '<a href="' + p.href + '"' + (p.id === page ? ' aria-current="page"' : '') + '>' + svg(p.id) + '<span>' + p.short + '</span></a>';
+      }).join('') + '<button type="button" id="tab-more"' + (TABS.indexOf(page) === -1 ? ' aria-current="page"' : '') + ' aria-label="Autres pages">' + svg('more') + '<span>Plus</span></button>';
     }
     var ft = document.getElementById('site-footer');
     if (ft) {
@@ -109,6 +120,8 @@
       if (sheet) sheet.classList.remove('open'); if (bm) bm.setAttribute('aria-expanded', 'false');
     }
     if (bd) bd.addEventListener('click', function (e) { e.stopPropagation(); var o = !panel.classList.contains('open'); closeAll(); if (o) { panel.classList.add('open'); bd.setAttribute('aria-expanded', 'true'); } });
+    var more = document.getElementById('tab-more');
+    if (more) more.addEventListener('click', function (e) { e.stopPropagation(); var o = !sheet.classList.contains('open'); closeAll(); if (o) { sheet.classList.add('open'); if (bm) bm.setAttribute('aria-expanded', 'true'); } });
     if (bm) bm.addEventListener('click', function (e) { e.stopPropagation(); var o = !sheet.classList.contains('open'); closeAll(); if (o) { sheet.classList.add('open'); bm.setAttribute('aria-expanded', 'true'); } });
     document.addEventListener('click', function (e) { if (panel && panel.classList.contains('open') && !panel.contains(e.target)) closeAll(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(); });
@@ -213,7 +226,17 @@
     requestAnimationFrame(frame);
   }
 
-  buildChrome(); wireChrome(); anchors(); buildToc(); tooltips(); tabs();
+  /* ---------- Mode hors ligne ---------- */
+  function offline() {
+    var el = document.getElementById('offline-state');
+    function say(t) { if (el) el.textContent = t; }
+    if (!('serviceWorker' in navigator) || !(location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) { say('Non disponible sur ce navigateur.'); return; }
+    navigator.serviceWorker.register('sw.js').then(function () { return navigator.serviceWorker.ready; }).then(function () {
+      say('Prêt : le site fonctionne sans réseau. Sur téléphone, « Ajouter à l’écran d’accueil » l’installe comme une application.');
+    }).catch(function () { say('Non activé sur cet appareil.'); });
+  }
+
+  buildChrome(); wireChrome(); anchors(); buildToc(); tooltips(); tabs(); offline();
   decode(document.querySelector('.hero h1, .pagehead h1'));
   window.PQC = {
     load: load, save: save, levelNow: levelNow, rebuildToc: buildToc,

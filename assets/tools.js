@@ -272,7 +272,17 @@
     ['iec', 'Que dit la norme sur la cryptographie ?', 'SR 4.3 « Use of cryptography » (3-3, FR4) s’applique à tous les SL-C sans enhancement. Les résumés lus parlent de mécanismes conformes à des standards reconnus, de gestion de clés documentée et d’algorithmes établis. Pas de liste d’algorithmes ni d’exigence de crypto-agilité trouvées.'],
     ['iec', 'L’IEC 62443 impose-t-elle la PQC ?', 'Non, rien de lu ne l’indique. Des vendeurs l’affirment ; je n’ai trouvé aucune position officielle d’ISA ou de l’IEC. Elle renvoie à des standards externes, ce qui est le chemin par lequel la PQC entrera.'],
     ['iec', 'Zone et conduit ?', 'Une zone regroupe des actifs partageant des exigences de sécurité communes ; un conduit est le canal entre deux zones, avec ses propres protections. L’analyse 3-2 les définit et fixe un SL-T par zone.'],
-    ['iec', 'Quelles parties concernent un fournisseur de produits ?', '4-1 (cycle de développement sécurisé) et 4-2 (exigences techniques par composant). Certifiables chez ISASecure : SDLA pour 4-1, CSA pour 4-2.']
+    ['iec', 'Quelles parties concernent un fournisseur de produits ?', '4-1 (cycle de développement sécurisé) et 4-2 (exigences techniques par composant). Certifiables chez ISASecure : SDLA pour 4-1, CSA pour 4-2.'],
+    ['iot', 'Quelles signatures la NSA approuve-t-elle pour signer un firmware ?', 'LMS et XMSS (à un seul arbre) ou ML-DSA-87. HSS et XMSS^MT sont interdits ; SLH-DSA n’est approuvé pour aucun usage (FAQ CNSA 2.0, v2.2, octobre 2026).'],
+    ['iot', 'Que perd-on si un index LMS est réutilisé ?', 'Chaque clé à usage unique ne doit signer qu’un message. Réutiliser un index, par exemple après la restauration d’une sauvegarde, détruit les garanties (RFC 8554). La NSA demande signature et gestion de l’état dans un HSM, avec des sauvegardes qui empêchent la réutilisation.'],
+    ['ot', 'Quelles sont les échéances CNSA 2.0 de la NSA ?', '1er janvier 2027 : nouvelles acquisitions conformes ; 31 décembre 2030 : équipements non conformes retirés et chiffrement quantum-safe par défaut ; 31 décembre 2031 : pleine conformité (FAQ CNSA 2.0, v2.2).'],
+    ['ot', 'Le mot « agilité » figure-t-il dans le CRA ou dans NIS 2 ?', 'Non : 0 occurrence dans le texte français complet de chacun. Le CRA demande un chiffrement de pointe et des mises à jour de sécurité ; NIS 2 des politiques sur la cryptographie.'],
+    ['ot', 'Que décide NIST IR 8547 dans sa version finale ?', 'Version finale du 27 octobre 2026 : dépréciation après 2030 et interdiction après 2035 des algorithmes à clé publique vulnérables au quantique (la correspondance exacte par tableau est à relire dans le PDF).'],
+    ['inv', 'Quels sont les quatre types d’actifs d’un CBOM CycloneDX ?', 'algorithm, certificate, protocol et related-crypto-material. Une clé est un related-crypto-material de type private-key, public-key ou secret-key.'],
+    ['inv', 'Que mesure le scanner Crypsy sur le benchmark Cryben ?', 'F1 = 0,75 (précision 0,87, rappel 0,66). Couverture limitée à Ruby, Go et nginx ; arguments calculés à l’exécution non résolus (Näther et Hirsch, arXiv 2608.04857).'],
+    ['inv', 'Que reconnaît la CISA sur les outils de découverte ?', 'Ils peuvent ne pas identifier la cryptographie embarquée dans des produits, d’où la demande de listes aux fournisseurs ; la plupart des neuf éléments de données de l’inventaire ne sont pas collectables automatiquement (documents de 2023 et 2024).'],
+    ['inv', 'Pourquoi les signatures de firmware sont-elles plus urgentes que les autres ?', 'L’algorithme de validation est souvent figé pour la vie du système : la NSA presse d’acheter des équipements dont les mises à jour sont déjà quantum-safe, au risque de devoir racheter des produits en 2030.'],
+    ['inv', 'Quelle incompatibilité guette un fournisseur qui vise l’IETF et la NSA ?', 'SUIT et COSE retiennent HSS-LMS (deux niveaux), alors que la NSA n’approuve que LMS et XMSS à un seul arbre.']
   ];
   function flashcards() {
     var box = $('#flash'); if (!box) return;
@@ -340,8 +350,241 @@
     live(); setInterval(live, 60000);
   }
 
+  /* ===== Démonstration : le problème LWE en une dimension (modèle jouet) ===== */
+  function lweDemo() {
+    var box = $('#tool-lwe'); if (!box) return;
+    var q = 97, secret = 0, pts = [];
+    var N = $('#lwe-n', box), E = $('#lwe-noise', box), G = $('#lwe-guess', box), svg = $('#lwe-svg', box);
+    function circ(x, y) { var d = Math.abs(x - y) % q; return Math.min(d, q - d); }
+    function draw() {
+      var n = +N.value, e = +E.value;
+      pts = [];
+      secret = 1 + Math.floor(Math.random() * (q - 2));
+      for (var i = 0; i < n; i++) { var a = Math.floor(Math.random() * q), err = Math.floor(Math.random() * (2 * e + 1)) - e; pts.push({ a: a, b: ((a * secret + err) % q + q) % q }); }
+      G.value = Math.floor(Math.random() * q);
+      render();
+    }
+    function render() {
+      var n = pts.length, e = +E.value, g = +G.value, W = 400, H = 300, pad = 28;
+      var sx = function (a) { return pad + a / (q - 1) * (W - 2 * pad); }, sy = function (b) { return H - pad - b / (q - 1) * (H - 2 * pad); };
+      $('#lwe-n-v', box).textContent = N.value; $('#lwe-noise-v', box).textContent = '± ' + E.value; $('#lwe-guess-v', box).textContent = G.value;
+      var score = 0, s = '<rect x="' + pad + '" y="' + pad + '" width="' + (W - 2 * pad) + '" height="' + (H - 2 * pad) + '" fill="none" stroke="var(--line-strong)"/>';
+      for (var a = 0; a < q; a++) s += '<circle cx="' + sx(a).toFixed(1) + '" cy="' + sy((g * a) % q).toFixed(1) + '" r="1.4" fill="var(--accent-2)" opacity=".55"/>';
+      pts.forEach(function (p) {
+        var ok = circ(p.b, (g * p.a) % q) <= e; if (ok) score++;
+        s += '<circle cx="' + sx(p.a).toFixed(1) + '" cy="' + sy(p.b).toFixed(1) + '" r="3.2" fill="' + (ok ? 'var(--accent)' : 'var(--amber)') + '"/>';
+      });
+      s += '<text x="' + pad + '" y="' + (H - 8) + '" fill="var(--fg-3)" font-family="var(--mono)" font-size="10">a (0 à ' + (q - 1) + ')</text><text x="6" y="14" fill="var(--fg-3)" font-family="var(--mono)" font-size="10">b = a·s + e mod ' + q + '</text>';
+      svg.innerHTML = s;
+      var compat = 0, best = 0, bestG = 0;
+      for (var c = 1; c < q; c++) { var sc = 0; for (var i = 0; i < n; i++) if (circ(pts[i].b, (c * pts[i].a) % q) <= e) sc++; if (sc === n) compat++; if (sc > best) { best = sc; bestG = c; } }
+      $('#lwe-score', box).textContent = score + ' / ' + n;
+      $('#lwe-compat', box).textContent = compat;
+      var v = $('#lwe-verdict', box);
+      if (g === secret) { v.className = 'verdict ok'; v.textContent = 'Vous avez trouvé le secret s = ' + secret + '.'; }
+      else if (compat === 1) { v.className = 'verdict bad'; v.textContent = 'Un seul secret est compatible avec toutes les observations : le bruit ne cache plus rien. Cherchez la valeur qui donne ' + n + ' / ' + n + '.'; }
+      else if (compat > 1) { v.className = 'verdict ok'; v.textContent = compat + ' secrets différents expliquent aussi bien les observations : le bruit cache le vrai secret.'; }
+      else { v.className = 'verdict mid'; v.textContent = 'Aucun secret ne colle parfaitement : le meilleur score possible est ' + best + ' / ' + n + ' (s = ' + bestG + ').'; }
+    }
+    [N, E].forEach(function (x) { x.addEventListener('input', draw); });
+    G.addEventListener('input', render);
+    $('#lwe-new', box).addEventListener('click', draw);
+    $('#lwe-reveal', box).addEventListener('click', function () { G.value = secret; render(); });
+    draw();
+  }
+
+  /* ===== Démonstration : hybridation ===== */
+  function hybridDemo() {
+    var box = $('#tool-hybrid'); if (!box) return;
+    var Q = $('#hy-quantum', box), F = $('#hy-flaw', box);
+    function mark(el, safe) { el.className = 'cell'; el.querySelector('b').textContent = safe ? 'Protégé' : 'Exposé'; el.querySelector('b').style.color = safe ? 'var(--accent)' : 'var(--red)'; }
+    function render() {
+      var q = Q.getAttribute('aria-pressed') === 'true', f = F.getAttribute('aria-pressed') === 'true';
+      mark($('#hy-classic', box), !q); mark($('#hy-pq', box), !f); mark($('#hy-both', box), !q || !f);
+      var v = $('#hy-verdict', box);
+      if (q && f) { v.className = 'verdict bad'; v.textContent = 'Les deux composants sont cassés : même l’hybride tombe. L’hybridation protège contre UN échec, pas contre deux.'; }
+      else if (q) { v.className = 'verdict ok'; v.textContent = 'Un ordinateur quantique casse X25519, mais ML-KEM tient : l’hybride protège la session, pas le classique seul.'; }
+      else if (f) { v.className = 'verdict ok'; v.textContent = 'ML-KEM a une faille, mais X25519 tient face aux machines actuelles : l’hybride protège la session, pas le post-quantique seul.'; }
+      else { v.className = 'verdict ok'; v.textContent = 'Rien n’est cassé : les trois options sont sûres, l’hybride coûte seulement plus d’octets.'; }
+    }
+    [Q, F].forEach(function (b) { b.addEventListener('click', function () { b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')); render(); }); });
+    render();
+  }
+
+  /* ===== Démonstration : fuite par le temps de calcul ===== */
+  function timingDemo() {
+    var box = $('#tool-timing'); if (!box) return;
+    var secret = [], mode = 'naive', found = [], queries = 0;
+    function newSecret() { secret = []; for (var i = 0; i < 4; i++) secret.push(Math.floor(Math.random() * 10)); found = []; queries = 0; render(); }
+    function steps(guess) { // nombre de chiffres comparés avant de répondre
+      if (mode === 'const') return 4;
+      var k = 0; while (k < 4 && guess[k] === secret[k]) k++; return Math.min(4, k + 1);
+    }
+    function probe(d) { var g = found.concat([d]); while (g.length < 4) g.push(0); queries++; return steps(g); }
+    function render() {
+      var pos = found.length, rows = '';
+      for (var d = 0; d < 10; d++) {
+        var t = pos < 4 ? probe(d) : 0;
+        rows += '<div class="bar-row"><div class="nm">chiffre ' + (pos + 1) + ' = ' + d + '</div><div class="tr"><span class="fl pq" style="width:' + (t / 4 * 100) + '%"></span></div><div class="v">' + (pos < 4 ? t + ' étape' + (t > 1 ? 's' : '') : '—') + '</div></div>';
+      }
+      $('#tm-bars', box).innerHTML = rows;
+      $('#tm-known', box).textContent = found.concat(['_', '_', '_', '_']).slice(0, 4).join(' ');
+      $('#tm-q', box).textContent = queries;
+      var v = $('#tm-verdict', box);
+      if (pos === 4) { v.className = 'verdict bad'; v.textContent = 'Code retrouvé : ' + found.join('') + ' en ' + queries + ' mesures de temps, au lieu de 10 000 essais à l’aveugle.'; }
+      else if (mode === 'const') { v.className = 'verdict ok'; v.textContent = 'Comparaison à temps constant : toutes les barres sont égales, le temps ne révèle rien.'; }
+      else { v.className = 'verdict mid'; v.textContent = 'Un chiffre juste fait durer la comparaison une étape de plus : cherchez la barre la plus longue.'; }
+    }
+    box.addEventListener('click', function (e) {
+      var m = e.target.closest('[data-mode]'); if (m) { mode = m.getAttribute('data-mode'); $$('[data-mode]', box).forEach(function (b) { b.setAttribute('aria-pressed', String(b === m)); }); found = []; queries = 0; render(); return; }
+      if (e.target.closest('#tm-next')) {
+        if (found.length >= 4) return;
+        var pos = found.length, best = 0, bd = 0;
+        for (var d = 0; d < 10; d++) { var g = found.concat([d]); while (g.length < 4) g.push(0); var t = steps(g); if (t > best) { best = t; bd = d; } }
+        found.push(mode === 'const' ? Math.floor(Math.random() * 10) : bd); render(); return;
+      }
+      if (e.target.closest('#tm-new')) newSecret();
+    });
+    newSecret();
+  }
+
+  /* ===== Schéma CBOM (CycloneDX 1.6 et 1.7) ===== */
+  var CBOM = {
+    'algorithm': { grp: 'algorithmProperties', rows: [
+      ['primitive', 'Famille de l’algorithme. Valeurs : drbg, mac, block-cipher, stream-cipher, signature, hash, pke, xof, kdf, key-agree, kem, ae, combiner, other, unknown.'],
+      ['parameterSetIdentifier', 'Jeu de paramètres (exemple du schéma : « SHA2-128s » pour SLH-DSA).'],
+      ['curve', 'Courbe elliptique, le cas échéant.'],
+      ['executionEnvironment', 'Environnement d’exécution.'],
+      ['implementationPlatform', 'Plateforme d’implémentation.'],
+      ['certificationLevel', 'Niveau de certification.'],
+      ['mode', 'Mode d’opération.'],
+      ['padding', 'Schéma de remplissage.'],
+      ['cryptoFunctions', 'Fonctions réalisées. Valeurs : generate, keygen, encrypt, decrypt, digest, tag, keyderive, sign, verify, encapsulate, decapsulate, other, unknown.'],
+      ['classicalSecurityLevel', 'Niveau de sécurité face à un attaquant classique, en bits.'],
+      ['nistQuantumSecurityLevel', 'Catégorie de sécurité quantique du NIST ; 0 signifie qu’aucune catégorie n’est atteinte.']
+    ], add: ['algorithmFamily', 'ellipticCurve'] },
+    'certificate': { grp: 'certificateProperties', rows: [
+      ['subjectName', 'Nom du sujet du certificat.'], ['issuerName', 'Nom de l’émetteur.'],
+      ['notValidBefore', 'Début de validité.'], ['notValidAfter', 'Fin de validité.'],
+      ['signatureAlgorithmRef', 'Référence à l’actif algorithme qui a signé le certificat.'],
+      ['subjectPublicKeyRef', 'Référence à la clé publique du sujet.'],
+      ['certificateFormat', 'Format du certificat.'], ['certificateExtension', 'Extensions du certificat.']
+    ], add: ['serialNumber', 'fingerprint', 'certificateState', 'revocationDate', 'relatedCryptographicAssets'] },
+    'protocol': { grp: 'protocolProperties', rows: [
+      ['type', 'Protocole. Valeurs : tls, ssh, ipsec, ike, sstp, wpa, other, unknown.'],
+      ['version', 'Version du protocole.'], ['cipherSuites', 'Suites cryptographiques proposées ou négociées.'],
+      ['ikev2TransformTypes', 'Transformations IKEv2.'], ['cryptoRefArray', 'Références aux actifs cryptographiques utilisés.']
+    ], add: ['relatedCryptographicAssets'] },
+    'related-crypto-material': { grp: 'relatedCryptoMaterialProperties', rows: [
+      ['type', 'Nature du matériel : private-key, public-key, secret-key, etc. C’est ainsi qu’une clé est décrite.'],
+      ['id', 'Identifiant.'], ['state', 'État du matériel.'], ['algorithmRef', 'Référence à l’algorithme associé.'],
+      ['creationDate', 'Date de création.'], ['activationDate', 'Date d’activation.'], ['updateDate', 'Date de mise à jour.'], ['expirationDate', 'Date d’expiration.'],
+      ['value', 'Valeur.'], ['size', 'Taille.'], ['format', 'Format.'], ['securedBy', 'Mécanisme qui protège le matériel.']
+    ], add: [] }
+  };
+  function cbomExplorer() {
+    var box = $('#tool-cbom'); if (!box) return;
+    var tabs = $('#cbom-tabs', box), out = $('#cbom-out', box), keys = Object.keys(CBOM);
+    tabs.innerHTML = keys.map(function (k, i) { return '<button type="button" data-t="' + k + '" aria-pressed="' + (i === 0) + '">' + k + '</button>'; }).join('');
+    function show(k) {
+      var c = CBOM[k];
+      $$('button', tabs).forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-t') === k)); });
+      out.innerHTML = '<p style="margin:0 0 8px">assetType = <code>' + k + '</code>, propriétés dans <code>' + c.grp + '</code>. Le champ <code>oid</code> existe au niveau de <code>cryptoProperties</code>.</p>' +
+        '<div class="tw" style="margin:0"><table style="min-width:520px"><thead><tr><th>Champ</th><th>Rôle</th></tr></thead><tbody>' +
+        c.rows.map(function (r) { return '<tr><td><code>' + r[0] + '</code></td><td>' + esc(r[1]) + '</td></tr>'; }).join('') +
+        c.add.map(function (a) { return '<tr><td><code>' + a + '</code></td><td>Ajouté en CycloneDX 1.7.</td></tr>'; }).join('') + '</tbody></table></div>';
+    }
+    tabs.addEventListener('click', function (e) { var b = e.target.closest('button[data-t]'); if (b) show(b.getAttribute('data-t')); });
+    show(keys[0]);
+  }
+
+  /* ===== Méthodes de découverte ===== */
+  var DISC = [
+    { id: 'static', n: 'Analyse statique du code', d: 'Appels d’API cryptographiques, algorithmes écrits en clair, clés et certificats présents dans le dépôt.', m: 'Arguments calculés à l’exécution, code généré, cryptographie embarquée dans des bibliothèques tierces.', t: 'sonar-cryptography, Cryptoscope, CryptoGuard, CogniCrypt' },
+    { id: 'bin', n: 'Binaires et firmware', d: 'Primitives propriétaires, constantes cryptographiques.', m: 'Code obscurci ou compressé.', t: 'Travaux académiques cités dans arXiv 2608.04857 (Where’s Crypto ?, USENIX Security 2021 ; R+r, ACSAC 2024).' },
+    { id: 'run', n: 'Observation à l’exécution', d: 'Les paramètres réellement utilisés.', m: 'Les chemins de code non exécutés pendant l’observation.', t: 'CRYLOGGER (Android), cité dans arXiv 2608.04857.' },
+    { id: 'net', n: 'Trafic et scan réseau', d: 'Protocoles, suites négociées, certificats exposés.', m: 'La cryptographie interne ou au repos, les protocoles propriétaires.', t: 'testssl.sh, sslyze, CryptoLyzer, zgrab2.' },
+    { id: 'cert', n: 'Certificats, PKI, keystores', d: 'Certificats, clés et leurs formats (PEM, PKCS#12).', m: 'Les usages applicatifs que fait le code de ces clés.', t: 'CryptoLyzer, scanners de dépôts de secrets.' },
+    { id: 'conf', n: 'Fichiers de configuration', d: 'Directives telles que ssl_protocols (nginx) ou celles de sshd_config.', m: 'Les valeurs par défaut implicites.', t: 'Crypsy (nginx).' },
+    { id: 'dep', n: 'Dépendances (SBOM)', d: 'Les bibliothèques cryptographiques présentes.', m: 'L’usage réel de leurs fonctions.', t: 'cryptodeps (QRAMM).' }
+  ];
+  function discTool() {
+    var box = $('#tool-disc'); if (!box) return;
+    var tabs = $('#disc-tabs', box), out = $('#disc-out', box);
+    tabs.innerHTML = DISC.map(function (m, i) { return '<button type="button" data-t="' + m.id + '" aria-pressed="' + (i === 0) + '">' + m.n + '</button>'; }).join('');
+    function show(id) {
+      var m = get(DISC, id);
+      $$('button', tabs).forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-t') === id)); });
+      out.innerHTML = '<dl class="kv" style="grid-template-columns:110px 1fr;margin-top:6px"><dt>Voit</dt><dd>' + esc(m.d) + '</dd><dt>Rate</dt><dd>' + esc(m.m) + '</dd><dt>Exemples</dt><dd>' + esc(m.t) + '</dd></dl>';
+    }
+    tabs.addEventListener('click', function (e) { var b = e.target.closest('button[data-t]'); if (b) show(b.getAttribute('data-t')); });
+    show('static');
+  }
+
+  /* ===== Chaîne de démarrage sécurisé ===== */
+  var BOOT = [
+    { lvl: 'Étage 0', name: 'ROM : la racine de confiance', k: 'k3', role: 'Premier code exécuté, gravé à la fabrication. Il vérifie le bootloader suivant.', key: 'Contient ou référence la clé publique (ou son empreinte) qui valide l’étage suivant.', change: 'Non : il ne peut pas être modifié après fabrication. L’algorithme de vérification qu’il contient est donc figé pour la vie de la puce.', src: 'Synthèse, non sourcée.' },
+    { lvl: 'Étage 1', name: 'Bootloader de premier niveau', k: 'k1', role: 'Vérifie la signature de l’image suivante avant de lui donner la main.', key: 'Dans MCUboot, seule la clé publique est embarquée dans l’image du bootloader, jusqu’à 8 clés. Les clés privées de production doivent rester dans un HSM.', change: 'Selon le produit. Dans TF-M, le bootloader BL2 n’est pas mettable à jour dans l’implémentation actuelle.', src: 'Documentation MCUboot (primaire) ; TF-M (extrait de recherche, secondaire).' },
+    { lvl: 'Étage 2', name: 'Bootloader ou système', k: 'k4', role: 'Vérifie l’application et applique la protection contre le retour en arrière.', key: 'Le manifeste contient un compteur de sécurité, comparé à un compteur non volatile ; un étage ne doit pas pouvoir décrémenter son compteur.', change: 'Souvent mettable à jour, mais c’est lui qui impose la politique anti-rollback.', src: 'TF-M (extrait de recherche, secondaire).' },
+    { lvl: 'Étage 3', name: 'Application et mises à jour', k: 'k2', role: 'Le firmware applicatif, et le canal par lequel arrive la prochaine version.', key: 'Le manifeste SUIT (COSE) peut porter plusieurs blocs d’authentification, donc plusieurs algorithmes en parallèle.', change: 'Oui : c’est le seul étage qui change à chaque mise à jour. La feuille de route européenne cible d’abord ce chemin.', src: 'draft-ietf-suit-manifest (primaire) ; feuille de route européenne (primaire).' }
+  ];
+  function bootChain() {
+    var box = $('#boot'); if (!box) return;
+    var list = $('.pl', box), det = $('.pd', box);
+    list.innerHTML = BOOT.map(function (p, i) { return '<button type="button" class="plv ' + p.k + '" data-i="' + i + '" aria-pressed="' + (i === 1) + '"><span class="pn">' + p.lvl + '</span><span class="pt">' + p.name + '</span></button>'; }).join('');
+    function show(i) {
+      var p = BOOT[i];
+      $$('.plv', list).forEach(function (b, j) { b.setAttribute('aria-pressed', String(j === i)); });
+      det.innerHTML = '<span class="chip ' + p.k + '">' + p.lvl + '</span><h4 style="margin-top:10px">' + p.name + '</h4><dl class="kv" style="margin-top:12px">' +
+        '<dt>Rôle</dt><dd>' + p.role + '</dd><dt>Clés</dt><dd>' + p.key + '</dd><dt>Modifiable ?</dt><dd>' + p.change + '</dd><dt>Source</dt><dd>' + p.src + '</dd></dl>';
+    }
+    list.addEventListener('click', function (e) { var b = e.target.closest('.plv'); if (b) show(+b.getAttribute('data-i')); });
+    show(1);
+  }
+
+  /* ===== Signatures à état : réutilisation d'index ===== */
+  function lmsDemo() {
+    var box = $('#tool-lms'); if (!box) return;
+    var TOTAL = 1024, idx = 0, snap = null, used = {}, log = [], bad = false, n = 0;
+    function render() {
+      $('#lms-idx', box).textContent = idx; $('#lms-left', box).textContent = fmt(Math.max(0, TOTAL - idx)); $('#lms-snap-v', box).textContent = snap == null ? '—' : snap;
+      $('#lms-log', box).innerHTML = log.slice(-6).map(function (l) {
+        return '<div class="bar-row"><div class="nm">index ' + l.i + '</div><div class="tr"><span class="fl' + (l.dup ? '" style="background:var(--red);width:100%' : ' pq" style="width:' + Math.max(3, l.i / TOTAL * 100) + '%') + '"></span></div><div class="v">' + l.m + (l.dup ? ' : RÉUTILISÉ' : '') + '</div></div>';
+      }).join('');
+      var v = $('#lms-verdict', box);
+      if (bad) { v.className = 'verdict bad'; v.textContent = 'Un même index a signé deux firmwares différents : la clé à usage unique est compromise. Selon la RFC 8554, plus aucune garantie cryptographique ne subsiste.'; }
+      else if (idx >= TOTAL) { v.className = 'verdict mid'; v.textContent = 'Les 1 024 signatures sont épuisées : il faut une nouvelle clé publique, donc un nouveau déploiement de clé.'; }
+      else { v.className = 'verdict ok'; v.textContent = 'Chaque index n’a signé qu’un seul firmware : la clé reste sûre. Essayez de sauvegarder, de signer, puis de restaurer.'; }
+    }
+    $('#lms-sign', box).addEventListener('click', function () {
+      if (idx >= TOTAL) return; n++;
+      var dup = used[idx] != null; if (dup) bad = true; used[idx] = n;
+      log.push({ i: idx, m: 'firmware v' + n, dup: dup }); idx++; render();
+    });
+    $('#lms-snap', box).addEventListener('click', function () { snap = idx; render(); });
+    $('#lms-restore', box).addEventListener('click', function () { if (snap != null) { idx = snap; render(); } });
+    $('#lms-reset', box).addEventListener('click', function () { idx = 0; snap = null; used = {}; log = []; bad = false; n = 0; render(); });
+    render();
+  }
+
+  /* ===== Chronologie : tri par date, filtre par acteur, repère « à venir » ===== */
+  function timeline() {
+    var box = $('#tl'); if (!box) return;
+    var ul = $('ul.slots', box), items = $$('li.slot', ul);
+    items.sort(function (a, b) { return a.getAttribute('data-date') < b.getAttribute('data-date') ? -1 : a.getAttribute('data-date') > b.getAttribute('data-date') ? 1 : 0; });
+    var now = new Date(), today = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2) + '-' + ('0' + now.getDate()).slice(-2);
+    items.forEach(function (li) { ul.appendChild(li); if (li.getAttribute('data-date') > '2026-11-18' && li.getAttribute('data-date') > today) li.classList.add('future'); });
+    $$('[data-tl]', box).forEach(function (b) {
+      b.addEventListener('click', function () {
+        var f = b.getAttribute('data-tl');
+        $$('[data-tl]', box).forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        items.forEach(function (li) { li.hidden = !(f === 'all' || li.getAttribute('data-cat') === f); });
+      });
+    });
+  }
+
   function init() {
-    [sizeExplorer, sizeTable, bench, mosca, lifecycle, purdue, iecMap, slPicker, flashcards, glossary, ecw].forEach(function (f) {
+    [sizeExplorer, sizeTable, bench, mosca, lifecycle, purdue, iecMap, slPicker, flashcards, glossary, ecw, lweDemo, hybridDemo, timingDemo, cbomExplorer, discTool, bootChain, lmsDemo, timeline].forEach(function (f) {
       try { f(); } catch (e) { if (window.console) console.error('PQC Lab, outil en échec :', f.name, e); }
     });
   }

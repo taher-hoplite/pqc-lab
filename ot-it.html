@@ -6,6 +6,10 @@
 <title>OT vs IT et PQC – PQC Lab</title>
 <meta name="description" content="Durée de vie, disponibilité, protocoles industriels et modèle de Purdue : pourquoi la migration post-quantique est différente dans les systèmes industriels. Avec calculateur de l'inégalité de Mosca.">
 <meta name="theme-color" content="#060b0e">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
 <script>(function(){var d=document.documentElement,t='dark';try{t=localStorage.getItem('pqc-theme')||'dark';}catch(e){}if(t==='light'||t==='dark')d.setAttribute('data-theme',t);})();</script>
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -48,7 +52,7 @@
 <thead><tr><th>Point</th><th>IT</th><th>OT</th></tr></thead>
 <tbody>
 <tr><td>Durée de vie</td><td>3 à 5 ans</td><td>Souvent 10 à 15 ans, parfois plus de 20, avec des systèmes qu'on ne peut plus corriger</td></tr>
-<tr><td>Priorités</td><td>Confidentialité, intégrité, disponibilité</td><td>Sûreté, puis disponibilité, intégrité, confidentialité</td></tr>
+<tr><td>Priorités</td><td>Confidentialité, intégrité, disponibilité, dans cet ordre</td><td>Sûreté d'abord, puis disponibilité, intégrité, confidentialité (une autre section du même guide cite l'intégrité et la disponibilité avant la confidentialité, la sûreté restant la priorité)</td></tr>
 <tr><td>Temps</td><td>Latence tolérée</td><td>Boucles de contrôle de la milliseconde à la minute ; le déterminisme compte</td></tr>
 <tr><td>Mises à jour</td><td>Fréquentes, automatisées</td><td>Rares, planifiées pendant des arrêts, parfois impossibles</td></tr>
 <tr><td>Protocoles</td><td>TLS, SSH, HTTPS</td><td>Modbus, DNP3, OPC UA, PROFINET, EtherNet/IP, protocoles propriétaires</td></tr>
@@ -167,10 +171,10 @@
 <thead><tr><th>Texte</th><th>Dates et contenu</th><th>Confiance</th></tr></thead>
 <tbody>
 <tr><td>Feuille de route PQC coordonnée de l'UE</td><td>Publiée le 23 juin 2025. 31/12/2026 : premières étapes, feuilles de route nationales, pilotes à haut et moyen risque. 31/12/2030 : cas à haut risque terminés, mises à jour de firmware quantum-safe par défaut. 31/12/2035 : risque moyen terminé, risque faible autant que possible. <strong>Recommandation non contraignante.</strong> <a class="src" href="https://digital-strategy.ec.europa.eu/en/library/coordinated-implementation-roadmap-transition-post-quantum-cryptography">Commission</a></td><td><span class="badge b-prim">primaire</span></td></tr>
-<tr><td>Cyber Resilience Act (règlement 2024/2847)</td><td>Entrée en vigueur le 10/12/2024. Obligations de signalement (art. 14) à partir du 11/09/2026. Application complète le 11/12/2027. <a class="src" href="https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act">Commission</a></td><td><span class="badge b-sec">EUR-Lex non consulté</span></td></tr>
-<tr><td>Directive NIS 2 (2022/2555)</td><td>Transposition due le 17/10/2024 ; la Commission a ouvert des procédures contre 23 États dont la France en novembre 2024. L'article 21(2)(h) impose des politiques sur la cryptographie et, le cas échéant, le chiffrement.</td><td><span class="badge b-sec">secondaire</span></td></tr>
+<tr><td>Cyber Resilience Act (règlement 2024/2847)</td><td>Entrée en vigueur le 10/12/2024. Organismes d'évaluation de la conformité (chapitre IV) : 11/06/2026. Obligations de signalement (art. 14) : 11/09/2026. Application générale : 11/12/2027. L'annexe I exige des mises à jour de sécurité et le chiffrement des données au repos ou en transit « au moyen de mécanismes de pointe » ; elle ne parle ni d'agilité cryptographique ni de PQC. <a class="src" href="https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32024R2847">EUR-Lex</a></td><td><span class="badge b-prim">primaire</span></td></tr>
+<tr><td>Directive NIS 2 (2022/2555)</td><td>Transposition due au plus tard le 17/10/2024. L'article 21(2)(h) impose « des politiques et des procédures relatives à l'utilisation de la cryptographie et, le cas échéant, du chiffrement ». <a class="src" href="https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32022L2555">EUR-Lex</a> La Commission a ouvert des procédures contre 23 États dont la France en novembre 2024 <span class="badge b-sec">secondaire</span></td><td><span class="badge b-prim">primaire</span> pour le texte</td></tr>
 </tbody></table></div>
-<div class="note piege"><div class="nt">Piège</div><p>Des sites de vendeurs affirment que NIS 2 et le CRA « imposent la crypto-agilité à partir de 2026 avec transition jusqu'en 2030 ». Je n'ai pas pu le confirmer : le mot « agilité » n'apparaît pas dans mes sources sur NIS 2, et l'échéance 2030 vient de la feuille de route non contraignante. Ne le répétez pas sans lire les textes.</p></div>
+<div class="note piege"><div class="nt">Piège</div><p>Des sites de vendeurs affirment que NIS 2 et le CRA « imposent la crypto-agilité à partir de 2026 avec transition jusqu'en 2030 ». C'est faux tel quel : j'ai cherché « agilité » dans le texte français complet du CRA et de NIS 2, sans aucune occurrence. L'échéance 2030 vient de la feuille de route européenne, une recommandation adressée aux États membres, pas aux entreprises.</p></div>
 </section>
 
 
@@ -186,9 +190,11 @@
 <li><a href="https://www.ncsc.gov.uk/guidance/pqc-migration-timelines">NCSC : jalons de migration</a> <span class="badge b-sec">extrait</span></li>
 <li><a href="https://globalriskinstitute.org/publication/quantum-threat-timeline-report-2025b/">Global Risk Institute 2025</a> <span class="badge b-sec">synthèse</span></li>
 <li><a href="https://eprint.iacr.org/2021/1563">PQC dans OPC UA (Bosch)</a> <span class="badge b-sec">secondaire</span></li>
-<li><a href="https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act">Cyber Resilience Act</a> <span class="badge b-sec">EUR-Lex non lu</span></li>
+<li><a href="https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32024R2847">Cyber Resilience Act, règlement 2024/2847</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32022L2555">Directive NIS 2, 2022/2555</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://cisa.gov/sites/default/files/2024-10/Post-Quantum%20Considerations%20for%20Operational%20Technology%20%28508%29.pdf">CISA : considérations post-quantiques pour l'OT (2024)</a> <span class="badge b-sec">résumé, non lu en entier</span></li>
 </ul>
-<div class="note verif"><div class="nt">Limites de cette page</div><p>Les impacts PQC par protocole sont mes inférences. MQTT/Sparkplug, l'ENISA et le règlement Machines ne sont pas traités. La position de l'OPC Foundation sur la PQC n'a pas été trouvée. Les dates CRA et NIS 2 sont à confirmer sur EUR-Lex.</p></div>
+<div class="note verif"><div class="nt">Limites de cette page</div><p>Les impacts PQC par protocole sont mes inférences. MQTT/Sparkplug, l'ENISA et le règlement Machines ne sont pas traités. Aucune position de l'OPC Foundation sur la PQC n'a été trouvée sur son site ni dans la partie 7 de la spécification OPC UA (l'absence de résultat est indicative, pas une preuve). Les politiques ECC d'OPC UA (nistP256, curve25519) sont classiques, donc vulnérables à un ordinateur quantique ; certaines sont dépréciées ou archivées. Les dates CRA et NIS 2 ont été lues sur EUR-Lex.</p></div>
 </section>
 
 </article>

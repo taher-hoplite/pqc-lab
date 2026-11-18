@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inventaire cryptographique (CBOM) – PQC·LAB</title>
+<meta name="description" content="Qu'est-ce qu'un CBOM, comment découvre-t-on les usages cryptographiques d'un système, quels outils et quelles recherches existent, et pourquoi c'est la première étape de la migration post-quantique.">
+<meta name="theme-color" content="#060b0e">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<script>(function(){var d=document.documentElement,t='dark';try{t=localStorage.getItem('pqc-theme')||'dark';}catch(e){}if(t==='light'||t==='dark')d.setAttribute('data-theme',t);})();</script>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body data-page="inv">
+<a class="skip" href="#main">Aller au contenu</a>
+<div id="site-header"></div>
+<div id="site-sheet"></div>
+
+<main id="main">
+<div class="wrap">
+  <header class="pagehead">
+    <div class="crumbs"><a href="index.html">Accueil</a> / Inventaire cryptographique</div>
+    <div class="eyebrow">Première étape de toute migration</div>
+    <h1>Savoir ce qu'on a avant de migrer</h1>
+    <p class="lead">On ne remplace pas ce qu'on ne voit pas. L'inventaire cryptographique (CBOM) est la première étape d'une transition post-quantique, et c'est aussi un problème de recherche encore ouvert : les outils actuels voient une partie seulement de la cryptographie d'un système.</p>
+    <div class="meta"><span>Lecture : 20 à 30 min selon le niveau</span><span>Mis à jour le 18 novembre 2026</span></div>
+  </header>
+</div>
+
+<div class="wrap page has-toc">
+<aside class="toc" id="toc" aria-label="Sommaire"></aside>
+<article>
+<div id="toc-m"></div>
+
+<section>
+<h2 id="essentiel" style="margin-top:28px">L'essentiel</h2>
+<div class="grid g4">
+  <div class="card"><div class="stat">n° 1</div><div class="stat-l">Créer des inventaires est « a first essential step and "no-regret" move » pour la feuille de route européenne. <a class="src" href="https://digital-strategy.ec.europa.eu/en/library/coordinated-implementation-roadmap-transition-post-quantum-cryptography">Commission</a></div></div>
+  <div class="card"><div class="stat">4</div><div class="stat-l">types d'actifs dans un CBOM CycloneDX : algorithm, certificate, protocol, related-crypto-material. <a class="src" href="https://raw.githubusercontent.com/CycloneDX/specification/master/schema/bom-1.6.schema.json">schéma 1.6</a></div></div>
+  <div class="card"><div class="stat">F1 0,75</div><div class="stat-l">Score du scanner Crypsy sur le benchmark Cryben : précision 0,87, rappel 0,66. <a class="src" href="https://arxiv.org/abs/2608.04857">arXiv</a></div></div>
+  <div class="card"><div class="stat">≠ tout</div><div class="stat-l">La CISA reconnaît que les outils peuvent ne pas voir la cryptographie embarquée dans des produits. <a class="src" href="https://www.nccoe.nist.gov/sites/default/files/2023-08/quantum-readiness-fact-sheet.pdf">fiche 2023</a></div></div>
+</div>
+<div class="note retenir"><div class="nt">À retenir</div>
+<p>Un inventaire cryptographique répond à trois questions : <strong>quoi</strong> (quels algorithmes, quelles clés, quels certificats), <strong>où</strong> (dans quel code, quel protocole, quel équipement) et <strong>jusqu'à quand</strong> (durée de protection des données). Sans les deux premières, on ne peut pas planifier la migration ; sans la troisième, on ne peut pas la prioriser.</p></div>
+</section>
+
+<section>
+<h2 id="cbom">1. Qu'est-ce qu'un CBOM ?</h2>
+<p>CBOM signifie <em>Cryptographic Bill of Materials</em> : la nomenclature des actifs cryptographiques d'un système, par analogie avec la nomenclature logicielle (SBOM). Son format de référence est une extension de <strong>CycloneDX</strong> : un composant de type <code>cryptographic-asset</code>, décrit par un bloc <code>cryptoProperties</code>. <a class="src" href="https://cyclonedx.org/capabilities/cbom/">CycloneDX</a> <span class="badge b-prim">source primaire</span></p>
+<div class="tw"><table style="min-width:600px">
+<thead><tr><th>Version</th><th>Ce qu'elle apporte</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>CycloneDX 1.6</td><td>Introduit <code>cryptoProperties</code> et le type <code>cryptographic-asset</code> (avril 2024).</td><td><span class="badge b-prim">schéma 1.6</span> <span class="badge b-sec">date : secondaire</span></td></tr>
+<tr><td>ECMA-424, 1re édition</td><td>Ratification de CycloneDX 1.6 (juin 2024). Une 2e édition (décembre 2025) est annoncée.</td><td><span class="badge b-sec">page Ecma, PDF non lu</span></td></tr>
+<tr><td>CycloneDX 1.7</td><td>Ajoute des champs : <code>algorithmFamily</code>, <code>ellipticCurve</code>, <code>serialNumber</code>, <code>fingerprint</code>, <code>certificateState</code>, <code>revocationDate</code>, <code>relatedCryptographicAssets</code>.</td><td><span class="badge b-prim">schéma 1.7</span></td></tr>
+</tbody></table></div>
+
+<h3>Explorer le schéma</h3>
+<p>Les noms de champs ci-dessous viennent des schémas JSON officiels 1.6 et 1.7. Choisissez un type d'actif.</p>
+<div class="tool" id="tool-cbom">
+<div class="tool-h"><h3>cbom --schema</h3><span class="tag">Interactif</span></div>
+<div class="tabs" role="group" aria-label="Type d'actif" id="cbom-tabs" style="margin-top:0"></div>
+<div id="cbom-out"></div>
+</div>
+<div class="note piege"><div class="nt">Piège</div><p>Il n'y a <strong>pas de type « key »</strong> dans le schéma : une clé est un actif <code>related-crypto-material</code> dont le champ <code>type</code> vaut <code>private-key</code>, <code>public-key</code>, <code>secret-key</code>, etc.</p></div>
+
+<div class="lv2">
+<h3>Un exemple d'actif</h3>
+<p>Voici une entrée illustrative pour ML-KEM-768, construite avec les noms de champs du schéma 1.6. Les valeurs sont celles d'ML-KEM-768 ; l'exemple est écrit ici, il n'est pas extrait d'un outil.</p>
+<div class="term"><div class="term-bar"><i></i><i></i><i></i><span>cbom.json (extrait)</span></div>
+<pre>{
+  <span class="k">"type"</span>: <span class="w">"cryptographic-asset"</span>,
+  <span class="k">"name"</span>: <span class="w">"ML-KEM-768"</span>,
+  <span class="k">"cryptoProperties"</span>: {
+    <span class="k">"assetType"</span>: <span class="w">"algorithm"</span>,
+    <span class="k">"algorithmProperties"</span>: {
+      <span class="k">"primitive"</span>: <span class="w">"kem"</span>,
+      <span class="k">"parameterSetIdentifier"</span>: <span class="w">"768"</span>,
+      <span class="k">"cryptoFunctions"</span>: [<span class="w">"keygen"</span>, <span class="w">"encapsulate"</span>, <span class="w">"decapsulate"</span>],
+      <span class="k">"nistQuantumSecurityLevel"</span>: <span class="w">3</span>
+    }
+  }
+}</pre></div>
+</div>
+</section>
+
+<section>
+<h2 id="decouverte">2. Comment découvre-t-on les usages cryptographiques ?</h2>
+<p>Aucune méthode ne voit tout. Chacune regarde un endroit différent, et rate ce que les autres voient. Choisissez une approche.</p>
+<div class="tool" id="tool-disc">
+<div class="tool-h"><h3>discover --method</h3><span class="tag">Interactif</span></div>
+<div class="tabs" role="group" aria-label="Méthode de découverte" id="disc-tabs" style="margin-top:0"></div>
+<div id="disc-out"></div>
+</div>
+<div class="note verif"><div class="nt">À vérifier</div><p>Ce tableau d'approches est <strong>ma synthèse</strong> : les sources citées ne l'énoncent pas telle quelle, et je n'ai pas cherché de source primaire pour chaque outil d'exemple. L'idée que le trafic réseau ne voit pas la cryptographie « au repos » ou interne, ou que les scanners de code manquent les arguments calculés à l'exécution, est confirmée par les limites de l'article de Näther et Hirsch (voir section 4).</p></div>
+<p>Les directives américaines demandent de chercher les algorithmes vulnérables dans trois zones : les <strong>protocoles réseau</strong>, les <strong>applications et bibliothèques</strong> (y compris le firmware et les mises à jour), et les <strong>dépendances du pipeline CI/CD</strong>. <a class="src" href="https://www.nccoe.nist.gov/sites/default/files/2023-08/quantum-readiness-fact-sheet.pdf">CISA, NSA, NIST 2023</a> <span class="badge b-prim">source primaire</span></p>
+</section>
+
+<section>
+<h2 id="outils">3. Les outils existants</h2>
+<p>Licences et langages relevés sur les dépôts GitHub eux-mêmes <span class="badge b-prim">source primaire</span>. Je n'ai pas vérifié les produits commerciaux (Keyfactor, SandboxAQ).</p>
+<div class="tw"><table style="min-width:760px">
+<thead><tr><th>Outil</th><th>Rôle</th><th>Licence</th><th>Langage</th></tr></thead>
+<tbody>
+<tr><td><a href="https://github.com/cbomkit/sonar-cryptography">sonar-cryptography</a></td><td>Plugin SonarQube qui produit un CBOM CycloneDX 1.6. Couvre Java (JCA, BouncyCastle), Python (pyca/cryptography), Go (bibliothèque standard, sauf <code>crypto/x509</code>). C# : en développement, « not yet meant for production ».</td><td>Apache-2.0 (code propre)</td><td>Java</td></tr>
+<tr><td><a href="https://github.com/cbomkit/cbomkit">CBOMkit</a></td><td>Boîte à outils pour générer et visualiser des CBOM.</td><td>Apache-2.0</td><td>Java</td></tr>
+<tr><td><a href="https://github.com/c0r0n3r/cryptolyzer">CryptoLyzer</a></td><td>Analyse TLS, SSL, SSH, DNSSEC, en-têtes HTTP, empreintes JA3 et HASSH.</td><td>MPL-2.0</td><td>Python</td></tr>
+<tr><td><a href="https://github.com/testssl/testssl.sh">testssl.sh</a></td><td>Test des suites TLS d'un serveur.</td><td>GPL-2.0</td><td>Shell</td></tr>
+<tr><td><a href="https://github.com/nabla-c0d3/sslyze">sslyze</a></td><td>Analyse de la configuration TLS.</td><td>AGPL-3.0</td><td>Python</td></tr>
+<tr><td><a href="https://github.com/zmap/zgrab2">zgrab2</a> et <a href="https://github.com/zmap/zmap">zmap</a></td><td>Scan à grande échelle : outils de mesure d'Internet.</td><td>Apache-2.0 (zmap)</td><td>Go, C</td></tr>
+<tr><td><a href="https://github.com/csnp/qramm">QRAMM</a>, <a href="https://github.com/csnp/cryptoscan">cryptoscan</a>, <a href="https://github.com/csnp/cryptodeps">cryptodeps</a></td><td>QRAMM est un <em>modèle de maturité</em>, pas un scanner ; cryptoscan analyse le code, cryptodeps les dépendances.</td><td>MIT ; Apache-2.0</td><td>Go</td></tr>
+<tr><td><a href="https://github.com/CryptoGuardOSS/cryptoguard">CryptoGuard</a></td><td>Détection de mauvais usages cryptographiques en Java.</td><td>GPL-3.0</td><td>Java</td></tr>
+<tr><td><a href="https://github.com/CROSSINGTUD/CryptoAnalysis">CogniCrypt SAST (CryptoAnalysis)</a></td><td>Analyse statique à partir de règles CrySL.</td><td>EPL-2.0</td><td>Java</td></tr>
+</tbody></table></div>
+<p class="lv2">Cryptoscope (IBM Research, arXiv 2503.19531) n'a pas de dépôt public trouvé. <span class="badge b-ver">code non vérifié</span> Le dépôt <code>IBM/sonar-cryptography</code> redirige vers <code>cbomkit/sonar-cryptography</code> ; le lien exact avec IBM n'est pas établi par le README.</p>
+</section>
+
+<section>
+<h2 id="recherche">4. Ce que dit la recherche</h2>
+
+<div class="card"><h3>« Hidden Ciphers and Where to Find Them »</h3>
+<p>Christian Näther et Eduard Hirsch, arXiv 2608.04857 (soumis le 5 août 2026), annoncé comme accepté à ICICS 2026. <a class="src" href="https://arxiv.org/abs/2608.04857">arXiv</a> <span class="badge b-prim">source primaire</span></p>
+<ul>
+<li><strong>Apport</strong> : une classification des actifs (matériel cryptographique, artefacts, invocations), un dépôt de règles (Crypistry), un scanner (Crypsy) et un benchmark synthétique (Cryben) en Go, Ruby et configuration nginx, avec 197 occurrences de référence.</li>
+<li><strong>Résultat</strong> : F1 = 0,75 (précision 0,87, rappel 0,66) ; 0,86 hors différences de comptage « par conception ». Sur un test réel de 10 services : 57 610 fichiers en moins de 6 minutes, 370 actifs, 6 liés à des CVE, 52 candidats de migration PQC.</li>
+<li><strong>Comparaison</strong> : sur le sous-ensemble Go, F1 de 0,92 contre 0,66 pour CBOMkit/sonar-cryptography 1.6.1. Le périmètre est celui des auteurs : à nuancer.</li>
+</ul></div>
+<div class="note piege"><div class="nt">Limites reconnues par les auteurs</div><ul style="margin:6px 0 0">
+<li>Couverture limitée à Ruby, Go et nginx ; Java, C/C++ et Python non démontrés.</li>
+<li>Les arguments calculés à l'exécution ne sont pas résolus.</li>
+<li>Pas d'analyse de flot de données : du tri manuel reste nécessaire.</li>
+<li>La vérité terrain du test réel est partielle.</li></ul></div>
+
+<div class="grid g2">
+<div class="card"><h4>Cryptoscope</h4><p>IBM Research, arXiv 2503.19531 (mars 2025), prépublication. Analyse statique avec flot de contrôle et de données ; capture opération, API et matériel associé pour plus de 92 % des cas de test des auteurs ; 11 faiblesses sur 15 détectées sur CamBench. Limite relevée : certificats et keystores laissés pour des travaux futurs. <a class="src" href="https://arxiv.org/abs/2503.19531">arXiv</a> <span class="badge b-prim">primaire</span></p></div>
+<div class="card"><h4>CamBench, CryptoGuard</h4><p>CamBench (MSR 2022) est un benchmark pour la détection de mauvais usages en Java. CryptoGuard (ACM CCS 2019) a été évalué sur 46 projets Apache et 6 181 applications Android ; il relève de la détection de mauvais usages, pas de l'inventaire. <span class="badge b-sec">pages de recherche</span></p></div>
+</div>
+<div class="lv3 note verif"><div class="nt">À vérifier</div><p>Trois prépublications arXiv de 2026 (post-quantum discovery comme capacité de gouvernance ; détection d'algorithmes PQC dans des binaires strippés ; détection de paquets cryptographiques par LLM) sont apparues dans mes recherches mais je ne les ai pas lues. Je n'ai pas vérifié l'article de CryptoAPI-Bench.</p></div>
+</section>
+
+<section>
+<h2 id="cadre">5. Ce que disent les textes officiels</h2>
+<div class="tw"><table style="min-width:640px">
+<thead><tr><th>Source</th><th>Ce qu'elle demande</th><th>Confiance</th></tr></thead>
+<tbody>
+<tr><td>CISA, NSA, NIST (août 2023)</td><td>Utiliser des outils de découverte pour identifier les algorithmes vulnérables ; lier l'inventaire à la durée de protection des données et à la criticité ; couvrir l'IT et l'OT ; demander aux fournisseurs la liste de la cryptographie embarquée. Aveu de limite : les outils peuvent ne pas identifier la cryptographie interne aux produits.</td><td><span class="badge b-prim">primaire</span></td></tr>
+<tr><td>CISA (septembre 2024)</td><td>Stratégie de migration vers des outils de découverte automatisés. Constat : la plupart des neuf éléments de données de l'inventaire ne peuvent pas être détectés ou collectés par les outils actuels ; un suivi manuel reste nécessaire pour les logiciels à cryptographie embarquée ou sur mesure.</td><td><span class="badge b-prim">primaire</span></td></tr>
+<tr><td>Feuille de route de l'UE (juin 2025)</td><td>Inventaires : « première étape essentielle » ; recommande un format standardisé « comme le CBOM ». Les États membres doivent accomplir les premières étapes avant fin 2026. Mise en garde contre la négociation dynamique de suites cryptographiques (risque de rétrogradation).</td><td><span class="badge b-prim">primaire</span> <span class="badge b-sec">jalons 2030/2035 : secondaire</span></td></tr>
+<tr><td>NCSC (Royaume-Uni)</td><td>Jalon 2028 : phase de découverte et d'évaluation. Précise que ce n'est pas un registre d'actifs formel. Évoque les cycles de remplacement rares des environnements OT.</td><td><span class="badge b-prim">primaire</span></td></tr>
+<tr><td>NIST NCCoE SP 1800-38</td><td>Projet de migration, avec un volume consacré à la découverte d'algorithmes vulnérables (38B). Première consultation close le 20 février 2024 ; nouveaux brouillons en septembre 2025.</td><td><span class="badge b-sec">secondaire</span> <span class="badge b-ver">statut final non vérifié</span></td></tr>
+<tr><td>ANSSI</td><td>Avis de migration mis à jour le 15 janvier 2024 : le texte lu traite de l'hybridation et des visas de sécurité, <strong>pas de l'inventaire</strong>. Une position sur l'inventaire existe dans l'avis de 2022 mais je n'ai pas lu ce texte.</td><td><span class="badge b-ver">non vérifié</span></td></tr>
+</tbody></table></div>
+<p class="sub" style="color:var(--fg-3);font-size:.85rem">Sources : <a href="https://cisa.gov/resources-tools/resources/quantum-readiness-migration-post-quantum-cryptography">CISA 2023</a>, <a href="https://cisa.gov/sites/default/files/2024-09/Strategy-for-Migrating-to-Automated-PQC-Discovery-and-Inventory-Tools.pdf">CISA 2024</a>, <a href="https://www.ncsc.gov.uk/guidance/pqc-migration-timelines">NCSC</a>, <a href="https://messervices.cyber.gouv.fr/guides/avis-de-lanssi-sur-la-migration-vers-la-cryptographie-post-quantique-0">ANSSI</a>. La BSI n'a pas été vérifiée.</p>
+</section>
+
+<section>
+<h2 id="ouvert">6. Les problèmes encore ouverts</h2>
+<div class="grid g2">
+  <div class="card"><h4>Les faux négatifs</h4><p>Rappel de 0,66 pour Crypsy sur Cryben, 11 faiblesses sur 15 pour Cryptoscope sur CamBench, couverture limitée en langages et en formats. <span class="badge b-prim">primaire</span></p></div>
+  <div class="card"><h4>La cryptographie embarquée ou propriétaire</h4><p>Non détectable par les outils selon la CISA, d'où la demande de listes aux fournisseurs. <span class="badge b-prim">primaire</span></p></div>
+  <div class="card"><h4>La crypto-agilité</h4><p>Définie et recommandée par la feuille de route européenne, avec une mise en garde sur la négociation dynamique de suites. <span class="badge b-prim">primaire</span></p></div>
+  <div class="card"><h4>La priorisation du risque</h4><p>Valeur et durée de protection des données, couplées à l'inventaire. <span class="badge b-prim">fiche CISA 2023</span></p></div>
+  <div class="card"><h4>L'OT et l'IoT</h4><p>L'inventaire doit couvrir l'OT (CISA) ; les cycles de remplacement sont longs (NCSC). Je n'ai pas de source sur les protocoles propriétaires. <span class="badge b-ver">synthèse</span></p></div>
+  <div class="card"><h4>La supervision continue</h4><p>Les sources lues ne traitent pas du suivi dans la durée, au-delà de l'intégration CI/CD citée par la CISA. <span class="badge b-ver">synthèse</span></p></div>
+</div>
+<div class="note retenir"><div class="nt">À retenir</div><p>Un inventaire complet <strong>n'existe pas encore</strong> en pratique : les outils couvrent du code, des protocoles ou des certificats, rarement tout à la fois, et pas les équipements fermés. C'est pourquoi les textes officiels combinent découverte automatique et déclarations des fournisseurs.</p></div>
+</section>
+
+<section>
+<h2 id="sources">Sources et limites</h2>
+<ul class="src-list two">
+<li><a href="https://cyclonedx.org/capabilities/cbom/">CycloneDX : CBOM</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://raw.githubusercontent.com/CycloneDX/specification/master/schema/bom-1.6.schema.json">Schéma CycloneDX 1.6</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://raw.githubusercontent.com/CycloneDX/specification/master/schema/bom-1.7.schema.json">Schéma CycloneDX 1.7</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://arxiv.org/abs/2608.04857">Näther et Hirsch, 2026</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://arxiv.org/abs/2503.19531">Cryptoscope, 2025</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://www.nccoe.nist.gov/sites/default/files/2023-08/quantum-readiness-fact-sheet.pdf">Fiche Quantum-Readiness, 2023</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://digital-strategy.ec.europa.eu/en/library/coordinated-implementation-roadmap-transition-post-quantum-cryptography">Feuille de route de l'UE</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://ecma-international.org/publications-and-standards/standards/ecma-424/">ECMA-424</a> <span class="badge b-sec">PDF non lu</span></li>
+</ul>
+<div class="note verif"><div class="nt">Limites de cette page</div><p>La lecture directe d'ECMA-424, le statut final de NIST SP 1800-38B, le texte de l'ANSSI sur l'inventaire (2022), la position de la BSI, les dépôts de Cryptoscope et des produits commerciaux, et trois prépublications de 2026 restent non vérifiés. Les chiffres de CryptoGuard et de CamBench viennent de pages de recherche secondaires.</p></div>
+</section>
+
+</article>
+</div>
+</main>
+
+<div id="site-footer"></div>
+<nav id="site-tabbar"></nav>
+<script src="assets/glossary.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tools.js"></script>
+</body>
+</html>

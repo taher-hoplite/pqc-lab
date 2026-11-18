@@ -6,6 +6,10 @@
 <title>PQC·LAB – le post-quantique, là où ça devient difficile</title>
 <meta name="description" content="Carnet de notes sur la cryptographie post-quantique pour objets connectés et systèmes industriels : tailles, benchmarks, protocoles, OT vs IT, IEC 62443, avec des outils interactifs.">
 <meta name="theme-color" content="#060b0e">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
 <script>(function(){var d=document.documentElement,t='dark';try{t=localStorage.getItem('pqc-theme')||'dark';}catch(e){}if(t==='light'||t==='dark')d.setAttribute('data-theme',t);})();</script>
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -51,10 +55,13 @@ ot    <span class="w">10–15 ans, parfois &gt; 20</span>   <span class="d">NIST
 <section>
 <h2 id="entrees" style="margin-top:56px">Au programme</h2>
 <div class="grid g2" style="margin-top:14px">
-  <a class="card" href="iot.html"><h3>Objets contraints</h3><p>Tailles de clés et de signatures, liens radio, temps et mémoire sur Cortex-M4, protocoles légers, signature de firmware, attaques physiques.</p><span class="go">Ouvrir →</span></a>
+  <a class="card" href="comprendre.html"><h3>Comprendre</h3><p>Ce que le quantique casse, pourquoi le bruit protège (problème LWE), pourquoi hybrider, comment le temps de calcul trahit un secret, et la chronologie des standards.</p><span class="go">Ouvrir →</span></a>
+  <a class="card" href="iot.html"><h3>Objets contraints</h3><p>Tailles de clés et de signatures, liens radio, temps et mémoire sur Cortex-M4, protocoles légers, attaques physiques.</p><span class="go">Ouvrir →</span></a>
   <a class="card" href="ot-it.html"><h3>OT vs IT</h3><p>Durée de vie, disponibilité, modèle de Purdue, protocoles industriels, priorité de l'intégrité, calendrier européen et inégalité de Mosca.</p><span class="go">Ouvrir →</span></a>
   <a class="card" href="iec62443.html"><h3>IEC 62443</h3><p>La série partie par partie, niveaux de sécurité, zones et conduits, cryptographie, certification, et ce que la norme dit de la PQC.</p><span class="go">Ouvrir →</span></a>
-  <a class="card" href="reviser.html"><h3>Réviser</h3><p>Vingt-trois fiches mémo, tous les chiffres sur une page et un glossaire avec recherche.</p><span class="go">Ouvrir →</span></a>
+  <a class="card" href="inventaire.html"><h3>Inventaire cryptographique</h3><p>Le CBOM, les méthodes de découverte, les outils, ce que mesure la recherche et ce que les textes officiels demandent.</p><span class="go">Ouvrir →</span></a>
+  <a class="card" href="firmware.html"><h3>Firmware</h3><p>Chaîne de confiance du démarrage, signatures à état et piège de l'index, architecture de mise à jour de l'IETF, calendriers de la NSA et de l'UE.</p><span class="go">Ouvrir →</span></a>
+  <a class="card" href="reviser.html"><h3>Réviser</h3><p>Fiches mémo, tous les chiffres sur une page et un glossaire avec recherche.</p><span class="go">Ouvrir →</span></a>
 </div>
 </section>
 
@@ -67,7 +74,13 @@ ot    <span class="w">10–15 ans, parfois &gt; 20</span>   <span class="d">NIST
   <a class="card" href="ot-it.html#horloge"><h4>Horloge quantique</h4><p>L'inégalité de Mosca et le cycle de vie d'un équipement face aux jalons européens.</p></a>
   <a class="card" href="ot-it.html#modele-purdue"><h4>Modèle de Purdue</h4><p>Où se loge la cryptographie, niveau par niveau.</p></a>
   <a class="card" href="iec62443.html#carte"><h4>Carte de l'IEC 62443</h4><p>Les parties de la série, leur rôle et leur titre.</p></a>
-  <a class="card" href="reviser.html#fiches"><h4>Fiches mémo</h4><p>Vingt-trois questions pour vérifier ce que vous retenez.</p></a>
+  <a class="card" href="comprendre.html#lwe"><h4>Bruit LWE</h4><p>Cherchez un secret caché derrière du bruit, et voyez quand il se cache ou se trahit.</p></a>
+  <a class="card" href="comprendre.html#hybride"><h4>Scénarios d'hybridation</h4><p>Un ordinateur quantique, une faille : qui reste protégé ?</p></a>
+  <a class="card" href="comprendre.html#temps"><h4>Fuite par le temps</h4><p>Retrouvez un code en mesurant une comparaison naïve.</p></a>
+  <a class="card" href="comprendre.html#chronologie"><h4>Chronologie</h4><p>NIST, Europe, NSA, IETF : qui a décidé quoi, et quand.</p></a>
+  <a class="card" href="inventaire.html#cbom"><h4>Schéma CBOM</h4><p>Les champs d'un actif cryptographique, type par type.</p></a>
+  <a class="card" href="firmware.html#lms"><h4>Index de signature LMS</h4><p>Réutilisez un index après une sauvegarde : que perd-on ?</p></a>
+  <a class="card" href="reviser.html#fiches"><h4>Fiches mémo</h4><p>Des questions pour vérifier ce que vous retenez.</p></a>
 </div>
 </section>
 

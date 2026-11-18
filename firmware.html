@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Firmware, démarrage sécurisé et PQC – PQC·LAB</title>
+<meta name="description" content="Chaîne de confiance du démarrage, signatures à état (LMS), architecture de mise à jour de l'IETF, implémentations et calendriers : signer un firmware à l'ère post-quantique.">
+<meta name="theme-color" content="#060b0e">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<script>(function(){var d=document.documentElement,t='dark';try{t=localStorage.getItem('pqc-theme')||'dark';}catch(e){}if(t==='light'||t==='dark')d.setAttribute('data-theme',t);})();</script>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body data-page="fw">
+<a class="skip" href="#main">Aller au contenu</a>
+<div id="site-header"></div>
+<div id="site-sheet"></div>
+
+<main id="main">
+<div class="wrap">
+  <header class="pagehead">
+    <div class="crumbs"><a href="index.html">Accueil</a> / Firmware</div>
+    <div class="eyebrow">Signer, démarrer, mettre à jour</div>
+    <h1>Le firmware à l'ère post-quantique</h1>
+    <p class="lead">Un firmware signé aujourd'hui peut rester vérifié pendant vingt ans, sur un équipement dont la racine de confiance est gravée dans le silicium. C'est le cas d'usage où la PQC devient la plus urgente, et le plus contraint.</p>
+    <div class="meta"><span>Lecture : 20 à 30 min selon le niveau</span><span>Mis à jour le 18 novembre 2026</span></div>
+  </header>
+</div>
+
+<div class="wrap page has-toc">
+<aside class="toc" id="toc" aria-label="Sommaire"></aside>
+<article>
+<div id="toc-m"></div>
+
+<section>
+<h2 id="essentiel" style="margin-top:28px">L'essentiel</h2>
+<div class="grid g4">
+  <div class="card"><div class="stat">1 452<small>octets</small></div><div class="stat-l">Signature LMS H10 / W8, pour une clé publique de 56 octets. <a class="src" href="https://www.rfc-editor.org/rfc/rfc8554.html">RFC 8554</a></div></div>
+  <div class="card"><div class="stat">1 024</div><div class="stat-l">signatures possibles avec une clé LMS de hauteur 10 : chacune n'est valable qu'une fois. <a class="src" href="https://github.com/mcu-tools/mcuboot/pull/2707">MCUboot</a></div></div>
+  <div class="card"><div class="stat">8</div><div class="stat-l">clés publiques au maximum embarquées dans un bootloader MCUboot. <a class="src" href="https://docs.mcuboot.com/readme-zephyr.html">doc MCUboot</a></div></div>
+  <div class="card"><div class="stat">2030</div><div class="stat-l">Échéance européenne pour des mises à jour de firmware quantum-safe par défaut. <a class="src" href="https://digital-strategy.ec.europa.eu/en/library/coordinated-implementation-roadmap-transition-post-quantum-cryptography">Commission</a></div></div>
+</div>
+<div class="note retenir"><div class="nt">À retenir</div>
+<p>Le problème n'est pas seulement de choisir un algorithme de signature : c'est de <strong>pouvoir en changer</strong> sur un équipement déjà déployé. Si la vérification d'un firmware repose sur un algorithme figé en ROM, aucun correctif ne le remplacera. C'est pourquoi on parle de crypto-agilité, et pourquoi la feuille de route européenne vise les mises à jour en premier.</p></div>
+</section>
+
+<section>
+<h2 id="chaine">1. La chaîne de confiance du démarrage</h2>
+<p>Un démarrage sécurisé vérifie chaque étage avant de lui donner la main : une signature, vérifiée avec une clé publique que l'étage précédent connaît. Cliquez sur un étage.</p>
+<div id="boot" class="purdue"><div class="pl"></div><div class="pd" aria-live="polite"></div></div>
+<div class="note piege"><div class="nt">Piège</div><p>Le schéma générique « ROM, puis bootloader, puis système, puis application » est <strong>ma synthèse</strong> : je n'ai pas trouvé de source unique qui l'énonce ainsi. Les éléments sourcés (MCUboot, TF-M) sont indiqués dans chaque étage. Où sont stockées les clés (fusibles, ROM, flash protégée) et comment on les révoque : <span class="badge b-ver">non sourcé</span>.</p></div>
+</section>
+
+<section>
+<h2 id="lms">2. Les signatures à état : le piège de l'index</h2>
+<p>Les signatures à base de hachage comme <abbr class="g" data-g="lms">LMS</abbr> et <abbr class="g" data-g="xmss">XMSS</abbr> sont standardisées par le NIST (SP 800-208, octobre 2020). <a class="src" href="https://csrc.nist.gov/pubs/sp/800/208/final">NIST</a> <span class="badge b-prim">primaire</span> Leur défaut : une clé privée contient un grand nombre de clés à usage unique, et chacune ne doit signer <strong>qu'un seul message</strong>. La RFC 8554 est catégorique : si l'état d'une clé est utilisé deux fois, plus aucune garantie cryptographique ne subsiste.</p>
+<p>Essayez : signez des firmwares, puis « restaurez une sauvegarde », comme le ferait un administrateur qui remet un serveur d'avant.</p>
+
+<div class="tool" id="tool-lms">
+<div class="tool-h"><h3>lms --sign</h3><span class="tag">Interactif</span></div>
+<div class="out">
+  <div class="cell"><b id="lms-idx">0</b><span>prochain index à utiliser</span></div>
+  <div class="cell"><b id="lms-left">1 024</b><span>signatures restantes</span></div>
+  <div class="cell"><b id="lms-snap-v">—</b><span>index de la sauvegarde</span></div>
+</div>
+<div class="rowgap" style="margin-top:14px">
+  <button type="button" class="btn" id="lms-sign" style="min-height:40px;padding:0 16px">Signer un firmware</button>
+  <button type="button" class="btn sec" id="lms-snap" style="min-height:40px;padding:0 16px">Sauvegarder l'état</button>
+  <button type="button" class="btn sec" id="lms-restore" style="min-height:40px;padding:0 16px">Restaurer la sauvegarde</button>
+  <button type="button" class="btn sec" id="lms-reset" style="min-height:40px;padding:0 16px">Remettre à zéro</button>
+</div>
+<div class="bars" id="lms-log" style="margin-top:14px"></div>
+<div class="verdict mid" id="lms-verdict"></div>
+</div>
+
+<div class="note retenir"><div class="nt">À retenir</div><p>Avec LMS, la sécurité dépend de <strong>l'infrastructure de signature</strong> autant que de l'algorithme : l'état doit être écrit en mémoire non volatile avant que la signature ne sorte, et aucune sauvegarde ne doit pouvoir le faire reculer. En pratique, la signature se fait dans un module matériel (HSM) contrôlé. <span class="badge b-sec">HSM : secondaire</span></p></div>
+<div class="lv2">
+<h3>Quelques valeurs de la RFC 8554</h3>
+<ul>
+<li>LM-OTS avec n = 32 (SHA-256) et w parmi 1, 2, 4, 8 : signatures à usage unique de 8 516, 4 292, 2 180 ou 1 124 octets.</li>
+<li>Hauteur d'arbre h parmi 5, 10, 15, 20, 25 : 2<sup>h</sup> signatures possibles par clé. Une signature LMS à un arbre fait environ 1 616 octets (h = 15), 1 776 (h = 20), 1 936 (h = 25) ; deux niveaux (HSS) : de 3 172 à 3 652 octets. <a class="src" href="https://www.rfc-editor.org/rfc/rfc8554.html">RFC 8554</a> <span class="badge b-prim">primaire</span></li>
+<li>Bonne pratique de la RFC : persister l'état avant de publier la signature, avec un vidage synchrone des caches.</li>
+</ul>
+</div>
+<div class="lv3 note piege"><div class="nt">Nuance</div><p>La demande de modification MCUboot #2707 écrit qu'avec une sous-clé utilisée pour plus d'un message « toute la clé privée sera compromise » ; c'est la formulation de l'auteur, plus forte que celle de la RFC, qui parle de parties de la clé secrète révélées permettant des falsifications.</p></div>
+</section>
+
+<section>
+<h2 id="ietf">3. L'architecture de mise à jour de l'IETF</h2>
+<p>Le groupe SUIT (<em>Software Updates for Internet of Things</em>) normalise comment décrire, signer et distribuer une mise à jour. Les numéros ci-dessous viennent du datatracker de l'IETF, lu via des résumés : à confirmer auprès du RFC Editor.</p>
+<div class="tw"><table style="min-width:660px">
+<thead><tr><th>Document</th><th>Contenu</th><th>Statut relevé</th></tr></thead>
+<tbody>
+<tr><td>RFC 9019</td><td>Architecture de mise à jour de firmware pour l'IoT</td><td>Informational, avril 2021</td></tr>
+<tr><td>RFC 9124</td><td>Modèle d'information du manifeste de mise à jour</td><td>Informational, janvier 2022</td></tr>
+<tr><td>draft-ietf-suit-manifest</td><td>Format du manifeste ; utilise COSE (COSE_Sign, COSE_Sign1, COSE_Mac, COSE_Mac0) et permet <strong>plusieurs blocs d'authentification</strong>, donc de changer d'algorithme ou de passer à la PQC</td><td>Brouillon -38, en file de l'éditeur de RFC, sans numéro</td></tr>
+<tr><td>draft-ietf-suit-mti</td><td>Profils d'algorithmes obligatoires à implémenter : notamment HMAC, ESP256, Ed25519 et HSS-LMS. ML-DSA n'y figure pas.</td><td>Brouillon -23, en file de l'éditeur de RFC</td></tr>
+<tr><td>RFC 8778</td><td>HSS-LMS dans COSE (algorithme -46)</td><td>Standards Track, avril 2020</td></tr>
+<tr><td>RFC 9964</td><td>ML-DSA pour JOSE et COSE</td><td>Proposed Standard, mai 2026 <span class="badge b-ver">à confirmer sur rfc-editor.org</span></td></tr>
+<tr><td>draft-ietf-cose-sphincs-plus</td><td>SLH-DSA pour COSE</td><td>Brouillon -10, en évaluation par l'IESG, pas de RFC</td></tr>
+</tbody><caption>Source : pages du datatracker de l'IETF. <a href="https://datatracker.ietf.org/doc/draft-ietf-suit-manifest/">manifeste</a>, <a href="https://datatracker.ietf.org/doc/draft-ietf-suit-mti/">MTI</a>, <a href="https://datatracker.ietf.org/doc/draft-ietf-cose-dilithium/">ML-DSA pour COSE</a>, <a href="https://datatracker.ietf.org/doc/draft-ietf-cose-sphincs-plus/">SLH-DSA pour COSE</a>.</caption></table></div>
+<div class="lv2 note verif"><div class="nt">À vérifier</div><p>La page du brouillon MTI indique une dernière mise à jour en octobre 2026 alors que le texte date de juillet 2025 : signal d'incohérence. Le détail des niveaux de recommandation (obligatoire ou recommandé) pour le profil HSS-LMS est à relire dans le texte.</p></div>
+</section>
+
+<section>
+<h2 id="implementations">4. Qui implémente quoi</h2>
+<div class="tw"><table style="min-width:660px">
+<thead><tr><th>Projet</th><th>État relevé</th><th>Confiance</th></tr></thead>
+<tbody>
+<tr><td>MCUboot</td><td>Demande de modification n° 2707 « Add LMS signature support », ouverte le 23 avril 2026, non fusionnée à ma lecture. Elle s'appuie sur Mbed TLS 4.1 et ne gère que SHA-256, w8, h10 (1 024 signatures par clé). Seul le simulateur la supporte pour l'instant. Un relecteur mesure environ 37 Kio de flash contre 35 Kio pour ECDSA P-256 sur Cortex-M33. Aucune demande pour ML-DSA trouvée.</td><td><span class="badge b-prim">primaire</span> <span class="badge b-ver">peut avoir changé</span></td></tr>
+<tr><td>wolfBoot</td><td>LMS/HSS et XMSS depuis la 2.0.0 ; ML-DSA (niveaux 44, 65, 87) depuis la 2.3.0 ; double signature hybride ; SLH-DSA non supporté.</td><td><span class="badge b-sec">vendeur</span></td></tr>
+<tr><td>STMicroelectronics X-CUBE-PQC</td><td>LMS et XMSS (vérification), ML-DSA et ML-KEM, avec accélérateur cryptographique STM32.</td><td><span class="badge b-sec">vendeur</span></td></tr>
+<tr><td>TF-M, Zephyr, Infineon, NXP, Microchip</td><td>Aucun support PQC vérifié.</td><td><span class="badge b-ver">non vérifié</span></td></tr>
+</tbody></table></div>
+<p class="sub" style="color:var(--fg-3);font-size:.85rem"><a href="https://github.com/mcu-tools/mcuboot/pull/2707">MCUboot #2707</a>, <a href="https://www.wolfssl.com/wolfboot-secure-boot-now-with-support-for-fips-204-ml-dsa-post-quantum-signature-algorithm/">wolfBoot ML-DSA</a>, <a href="https://www.st.com/en/embedded-software/x-cube-pqc.html">X-CUBE-PQC</a>.</p>
+</section>
+
+<section>
+<h2 id="calendriers">5. Les calendriers et les recommandations</h2>
+<div class="grid g2">
+  <div class="card"><h4>Union européenne</h4><p>La feuille de route recommande de sécuriser tôt les mises à jour de logiciels et de firmware avec des signatures post-quantiques, y compris pour un produit non migré (« voie de mise à niveau »). Fin 2030 pour des mises à jour quantum-safe par défaut. Recommandation non contraignante. <span class="badge b-prim">primaire</span></p></div>
+  <div class="card"><h4>NSA, CNSA 2.0</h4><p>Pour signer firmware et logiciels : LMS et XMSS (tous paramètres, LMS SHA-256/192 recommandé) ou ML-DSA-87. <strong>HSS et XMSS^MT sont interdits</strong> ; SLH-DSA n'est approuvé pour aucun usage. Échéances : 1er janvier 2027 pour les nouvelles acquisitions, 31 décembre 2030 pour retirer les équipements non conformes, 31 décembre 2031 pour la pleine conformité. <a class="src" href="https://media.defense.gov/2022/Sep/07/2003071836/-1/-1/0/CSI_CNSA_2.0_FAQ_.PDF">FAQ v2.2, octobre 2026</a> <span class="badge b-prim">primaire</span></p></div>
+  <div class="card"><h4>NIST</h4><p>SP 800-208 (LMS, XMSS) en octobre 2020 ; SP 800-193 sur la résilience du firmware de plateforme (mai 2018) : protéger, détecter, récupérer. <span class="badge b-prim">primaire</span></p></div>
+  <div class="card"><h4>ANSSI, BSI : l'hybridation</h4><p>Des commentaires secondaires indiquent que l'ANSSI recommande fortement l'hybridation, avec une exception pour les systèmes reposant uniquement sur des signatures à base de hash ; la BSI recommanderait l'hybride et listerait XMSS et LMS. Je n'ai pu confirmer ni l'exception, ni la BSI. <span class="badge b-ver">à vérifier</span></p></div>
+</div>
+<div class="note piege lv2"><div class="nt">Incompatibilité à connaître</div><p>La NSA n’approuve que les variantes à <strong>un seul arbre</strong> de LMS et XMSS, alors que les profils SUIT et COSE de l’IETF retiennent <strong>HSS-LMS</strong> (à deux niveaux). Un fournisseur qui vise à la fois l’écosystème IETF et les systèmes de sécurité nationale américains doit choisir des paramètres compatibles avec les deux.</p></div>
+<div class="note retenir lv2"><div class="nt">Ce que dit la NSA du firmware</div><p>Les signatures de firmware sont plus urgentes que les autres parce que, dans beaucoup de cas, l’algorithme de validation n’est pas facilement remplaçable : il est souvent figé pour la vie du système. La NSA presse donc d’acheter des équipements dont les mises à jour sont déjà quantum-safe, au risque de devoir racheter des produits en 2030. Elle demande aussi d’implémenter la signature et la gestion de l’état dans un module matériel, et de s’assurer que les flux de sauvegarde empêchent toute réutilisation de l’état. <a class="src" href="https://media.defense.gov/2022/Sep/07/2003071836/-1/-1/0/CSI_CNSA_2.0_FAQ_.PDF">FAQ v2.2</a> <span class="badge b-prim">primaire</span></p></div>
+<div class="note piege"><div class="nt">Raisonnement, pas une source</div><p>Pourquoi hybrider un firmware ? ML-DSA est récent ; une double signature, classique plus post-quantique, reste valable si l'une des deux familles est affaiblie. Dans la discussion MCUboot #2707, un relecteur a suggéré un mode à double signature. Je n'ai trouvé aucune recommandation de l'IETF spécifique à la signature hybride de firmware.</p></div>
+</section>
+
+<section>
+<h2 id="rollback">6. Retour en arrière, révocation et attaques</h2>
+<ul>
+<li><strong>Anti-rollback</strong> : dans TF-M, un compteur de sécurité figure dans la partie du manifeste protégée en intégrité ; il est comparé à un compteur non volatile, et chaque étage ne doit pas pouvoir décrémenter son compteur. Sans compteur de confiance, la réinstallation d'une image valide mais ancienne n'est pas traitée. Dans l'implémentation actuelle, le bootloader BL2 n'est pas mettable à jour. <a class="src" href="https://trustedfirmware-m.readthedocs.io/en/latest/design_docs/booting/secure_boot_rollback_protection.html">TF-M</a> <span class="badge b-sec">extrait de recherche</span></li>
+<li><strong>Crypto-agilité</strong> : clés multiples dans MCUboot (jusqu'à 8), blocs d'authentification multiples dans SUIT. <span class="badge b-prim">primaire</span></li>
+<li><strong>Révocation et durée de vie supérieure à 15 ans</strong> : aucune source dédiée trouvée. <span class="badge b-ver">lacune</span></li>
+<li><strong>Attaques réelles</strong> : le glitching de tension sur des STM32 a permis de passer le niveau de protection de lecture (RDP) et de lire la mémoire, selon des analyses sur un portefeuille matériel. Il s'agit du contournement d'un contrôle de protection, <strong>pas d'une signature contournée</strong> : je n'ai trouvé aucun cas documenté de vérification de signature contournée par faute. <span class="badge b-sec">secondaire</span></li>
+</ul>
+</section>
+
+<section>
+<h2 id="sources">Sources et limites</h2>
+<ul class="src-list two">
+<li><a href="https://csrc.nist.gov/pubs/sp/800/208/final">NIST SP 800-208</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://csrc.nist.gov/pubs/sp/800/193/final">NIST SP 800-193</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc8554.html">RFC 8554 : LMS</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://www.rfc-editor.org/info/rfc9019">RFC 9019</a> et <a href="https://www.rfc-editor.org/info/rfc9124">RFC 9124</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://datatracker.ietf.org/doc/rfc8778/">RFC 8778 : HSS-LMS dans COSE</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://docs.mcuboot.com/readme-zephyr.html">Documentation MCUboot</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://github.com/mcu-tools/mcuboot/pull/2707">MCUboot #2707</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://media.defense.gov/2022/Sep/07/2003071836/-1/-1/0/CSI_CNSA_2.0_FAQ_.PDF">NSA : FAQ CNSA 2.0, v2.2 (octobre 2026)</a> <span class="badge b-prim">primaire</span></li>
+</ul>
+<div class="note verif"><div class="nt">Limites de cette page</div><p>Le statut des brouillons SUIT, RFC 8391 (XMSS), PSA, TF-M hors anti-rollback, Zephyr, Infineon, NXP, Microchip, la position de l'ANSSI et de la BSI sur l'hybridation, le stockage des clés racines et la révocation n'ont pas été vérifiés. Les pages de l'IETF et de GitHub ont été lues via des résumés ; leurs dates et statuts peuvent avoir changé.</p></div>
+</section>
+
+</article>
+</div>
+</main>
+
+<div id="site-footer"></div>
+<nav id="site-tabbar"></nav>
+<script src="assets/glossary.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tools.js"></script>
+</body>
+</html>

@@ -6,6 +6,10 @@
 <title>IEC 62443 et PQC – PQC Lab</title>
 <meta name="description" content="La série IEC 62443 partie par partie : exigences fondamentales, niveaux de sécurité, zones et conduits, cryptographie, certification, et ce que la norme dit (ou ne dit pas) de la cryptographie post-quantique.">
 <meta name="theme-color" content="#060b0e">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
 <script>(function(){var d=document.documentElement,t='dark';try{t=localStorage.getItem('pqc-theme')||'dark';}catch(e){}if(t==='light'||t==='dark')d.setAttribute('data-theme',t);})();</script>
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -152,7 +156,7 @@
     <p>Un résumé du projet CIP (Linux) décrit les attentes : mécanismes conformes à des standards internationalement reconnus, données protégées au repos et en transit, gestion de clés documentée, algorithmes de hachage et de chiffrement établis, bonnes pratiques de NIST SP 800-57 (<a href="https://2025-cip.readthedocs.io/en/latest/process/use_of_cryptography-cr-4.3.html">CIP</a>, secondaire).</p></div>
 </div>
 <div class="note retenir"><div class="nt">Ce qu'on peut en conclure, et ce qu'on ne peut pas</div>
-<p>Rien de ce que j'ai lu n'indique une <strong>liste d'algorithmes imposée</strong>, ni une <strong>exigence de crypto-agilité</strong>. La norme renvoie à des standards externes (NIST et autres). C'est à confirmer sur le texte payant.</p></div>
+<p>Rien de ce que j'ai lu n'indique une <strong>liste d'algorithmes imposée</strong>, ni une <strong>exigence de crypto-agilité</strong>. La norme renvoie à des standards externes (NIST et autres). C'est à confirmer sur le texte payant. Les pages du comité ISA99 que j'ai consultées ne mentionnent ni la PQC ni le quantique (l'absence n'est pas une preuve). Une source primaire proche existe côté américain : la CISA a publié en octobre 2024 « Post-Quantum Considerations for Operational Technology », qui recommande la crypto-agilité (non lu en entier).</p></div>
 
 <h3>Où la PQC touche les exigences</h3>
 <p>Le tableau ci-dessous relie des exigences connues aux primitives que la PQC remplace. Les exigences viennent de sources secondaires ; <strong>le lien avec la PQC est mon inférence</strong>.</p>
@@ -173,14 +177,14 @@
 <thead><tr><th>Affirmation</th><th>Verdict</th><th>Pourquoi</th></tr></thead>
 <tbody>
 <tr><td>« L'IEC 62443 intègre la PQC »</td><td><span class="badge b-ver">invérifiable, probablement faux pour les éditions publiées</span></td><td>Aucune mention de PQC dans les titres, parties ou contenus lus ; aucune position officielle d'ISA, ISA99, IEC TC65 ou ISAGCA trouvée. L'absence de preuve n'est pas une preuve d'absence : un travail en cours reste possible.</td></tr>
-<tr><td>« NIS 2 et le CRA imposent la crypto-agilité à partir de 2026, avec transition jusqu'en 2030 »</td><td><span class="badge b-ver">inexact tel quel</span></td><td>L'échéance 2030 vient de la feuille de route de l'UE, qui est une <strong>recommandation non contraignante</strong>. NIS 2, art. 21(2)(h), impose des politiques sur la cryptographie, sans le mot « agilité » dans mes sources ; l'annexe I du CRA n'a pas été vérifiée.</td></tr>
+<tr><td>« NIS 2 et le CRA imposent la crypto-agilité à partir de 2026, avec transition jusqu'en 2030 »</td><td><span class="badge b-ver">inexact tel quel</span></td><td>L'échéance 2030 vient de la feuille de route de l'UE, une <strong>recommandation adressée aux États membres</strong>. NIS 2, art. 21(2)(h), impose des politiques sur la cryptographie ; le CRA (annexe I) demande le chiffrement de pointe et des mises à jour de sécurité. Le mot « agilité » n'apparaît pas dans le texte français complet de l'un ni de l'autre (0 occurrence).</td></tr>
 </tbody></table></div>
 </section>
 
 <section>
 <h2 id="droit">9. Lien avec le droit européen</h2>
 <div class="grid g2">
-<div class="card"><h4>CRA : calendrier</h4><p>Entré en vigueur le 10/12/2024 ; obligations de signalement (art. 14) à partir du 11/09/2026 ; application complète le 11/12/2027. <a class="src" href="https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act">Commission</a> <span class="badge b-sec">EUR-Lex non lu</span></p></div>
+<div class="card"><h4>CRA : calendrier</h4><p>Entré en vigueur le 10/12/2024 ; organismes d'évaluation de la conformité à partir du 11/06/2026 ; obligations de signalement (art. 14) à partir du 11/09/2026 ; application générale le 11/12/2027. <a class="src" href="https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32024R2847">EUR-Lex</a> <span class="badge b-prim">primaire</span></p></div>
 <div class="card"><h4>Normes harmonisées</h4><p>Un commentaire de juillet 2026 sur la demande de normalisation M/606 indique : série horizontale EN 40000, série verticale prEN 50770 qui s'appuie sur l'IEC 62443 sans que plusieurs de ses parties soient forcément citées au Journal officiel ; aucune norme harmonisée du CRA n'y était citée. Statut de 4-1 et 4-2 vis-à-vis du CRA : <span class="badge b-ver">non trouvé</span> <span class="badge b-sec">site non officiel</span></p></div>
 </div>
 <p class="lv2">La position d'ISAGCA est que toute exigence réglementaire devrait inclure l'ISA/IEC 62443 (<a href="https://gca.isa.org/blog/isagca-release-position-on-cybersecurity-requirements-in-public-policy">ISAGCA</a>). C'est une position de lobbying sectoriel, pas un texte légal.</p>
@@ -208,7 +212,7 @@
 <li><a href="https://2025-cip.readthedocs.io/en/latest/process/use_of_cryptography-cr-4.3.html">CIP : CR 4.3</a> <span class="badge b-sec">secondaire</span></li>
 <li><a href="https://isasecure.org/certification">ISASecure : certification</a> <span class="badge b-sec">secondaire</span></li>
 <li><a href="https://www.tuvsud.com/en-us/services/testing/iec-62443-certification">TÜV SÜD : certification 62443</a> <span class="badge b-sec">secondaire</span></li>
-<li><a href="https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act">Commission : Cyber Resilience Act</a> <span class="badge b-sec">EUR-Lex non lu</span></li>
+<li><a href="https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32024R2847">EUR-Lex : Cyber Resilience Act</a> <span class="badge b-prim">primaire</span></li>
 </ul>
 <div class="note verif"><div class="nt">Limites de cette page</div><p>Je n'ai lu aucune édition payante de la norme : les formulations normatives de SR 4.3 et CR 4.3, SL-T/C/A, les liens avec Purdue, les parties 1-2 et 1-3 et l'éventuel travail PQC d'ISA99 ou de l'IEC TC65 restent à vérifier. Le contenu de la feuille de route de l'UE est lu ailleurs sur ce site.</p></div>
 </section>

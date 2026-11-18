@@ -6,6 +6,10 @@
 <title>PQC sur objets contraints – PQC Lab</title>
 <meta name="description" content="Tailles de clés et de signatures post-quantiques, liens radio, benchmarks sur microcontrôleur, protocoles légers et signature de firmware : ce qui coince sur les objets connectés.">
 <meta name="theme-color" content="#060b0e">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
 <script>(function(){var d=document.documentElement,t='dark';try{t=localStorage.getItem('pqc-theme')||'dark';}catch(e){}if(t==='light'||t==='dark')d.setAttribute('data-theme',t);})();</script>
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -66,7 +70,7 @@
 <tbody></tbody>
 <caption>« Clé secrète » = forme étendue quand la graine seule n'est pas utilisée. « — » : non vérifié dans cette session. Falcon : tailles moyennes de la forme compressée ; la forme à taille fixe est plus grande. Classiques : valeurs standard connues, non re-sourcées.</caption>
 </table></div>
-<div class="note retenir"><div class="nt">À retenir</div><p>L'ordre de grandeur : <strong>×30 à ×40</strong> pour l'échange de clés (ML-KEM-768 contre X25519), <strong>×50</strong> pour une signature ML-DSA-65 contre Ed25519. Les signatures compactes existent (FN-DSA, environ 666 octets) mais FIPS 206 est encore un projet, et les signatures à base de hash vont de 7,8 à près de 50 Kio.</p></div>
+<div class="note retenir"><div class="nt">À retenir</div><p>L'ordre de grandeur : <strong>×30 à ×40</strong> pour l'échange de clés (ML-KEM-768 contre X25519), <strong>×50</strong> pour une signature ML-DSA-65 contre Ed25519. Les signatures compactes existent (FN-DSA, environ 666 octets) mais FIPS 206 n’est pas publié à ma connaissance (voir la page « Comprendre »), et les signatures à base de hash vont de 7,8 à près de 50 Kio.</p></div>
 <div class="lv2">
 <h3>Pourquoi tant d'octets ?</h3>
 <p>Les schémas à base de réseaux euclidiens reposent sur des objets algébriques de grande dimension (des vecteurs de polynômes). Une clé publique est une matrice bruitée ou sa graine plus un vecteur ; un chiffré en est une transformation. Les courbes elliptiques cachent beaucoup plus d'information dans un point de 32 octets, d'où l'écart.</p>
@@ -87,11 +91,11 @@
 <thead><tr><th>Lien</th><th class="n">Charge utile typique</th><th>Source et réserve</th></tr></thead>
 <tbody>
 <tr><td>IEEE 802.15.4</td><td class="n">81 o max après MAC, AES-CCM-128</td><td>Trame PHY de 127 o, 25 o de surcharge MAC, 21 o de chiffrement MAC. <a class="src" href="https://datatracker.ietf.org/doc/html/rfc4944">RFC 4944</a> <span class="badge b-prim">primaire</span>. Avec 6LoWPAN et UDP : environ 60 à 70 o, <strong>estimation</strong>.</td></tr>
-<tr><td>BLE par défaut</td><td class="n">20 o</td><td>MTU ATT de 23 octets. <a class="src" href="https://punchthrough.com/ble-att-mtu-throughput/">Punch Through</a> <span class="badge b-sec">secondaire</span></td></tr>
+<tr><td>BLE par défaut</td><td class="n">20 o</td><td>MTU ATT par défaut de 23 octets, soit 20 octets utiles (valeur définie dans la partie GATT de la spécification Bluetooth Core). <a class="src" href="https://www.bluetooth.com/specifications/specs/core-specification-5-4/">Bluetooth Core 5.4</a> <span class="badge b-prim">primaire</span></td></tr>
 <tr><td>BLE, longueur de données étendue</td><td class="n">≈ 244 o</td><td>MTU 247 recommandé ; décompte des en-têtes variable selon les sources. <span class="badge b-sec">secondaire</span></td></tr>
-<tr><td>LoRaWAN EU868</td><td class="n">51 / 115 / 222 o</td><td>DR0 à DR2 : 51 ; DR3 : 115 ; DR4 à DR7 : 222. <a class="src" href="https://lora-developers.semtech.com/library/tech-papers-and-guides/the-book/packet-size-considerations">Semtech</a> <span class="badge b-sec">secondaire</span> ; document officiel RP002 non lu ; DR8 à DR11 contradictoires.</td></tr>
+<tr><td>LoRaWAN EU868</td><td class="n">51 / 115 / 222 o</td><td>DR0 à DR2 : 51 ; DR3 : 115 ; DR4 à DR7 : 222 (242 si aucun répéteur n’est utilisé) ; DR8 à DR11 : 50, 115, 50, 115. Lu dans le document officiel RP002-1.0.3, tableaux 12 et 13 ; ces valeurs sont des maxima sans option de commande (FOpts), la charge utile baisse sinon. La version 1.0.4 n’a pas pu être téléchargée. <a class="src" href="https://lora-alliance.org/wp-content/uploads/2021/05/RP002-1.0.3-FINAL-1.pdf">LoRa Alliance</a> <span class="badge b-prim">primaire</span></td></tr>
 <tr><td>Sigfox</td><td class="n">12 o</td><td>Montant : 12 o, 140 messages par jour ; descendant : 8 o. <a class="src" href="https://www.rfc-editor.org/rfc/rfc9442.html">RFC 9442</a> <span class="badge b-sec">secondaire</span></td></tr>
-<tr><td>NB-IoT / LTE-M</td><td class="n">—</td><td><span class="badge b-ver">non trouvé</span> Les sources se contredisent (1 280 ou 1 600 o recommandés) ; je n'ai pas de chiffre 3GPP fiable.</td></tr>
+<tr><td>NB-IoT / LTE-M</td><td class="n">—</td><td>NB-IoT : MTU recommandée de <strong>1 358 octets</strong>, d'après la RFC 9391 qui cite le 3GPP (je n'ai pas lu le texte 3GPP lui-même). <a class="src" href="https://www.rfc-editor.org/rfc/rfc9391.txt">RFC 9391</a> <span class="badge b-prim">primaire (indirect)</span> LTE-M : <span class="badge b-ver">pas de source primaire trouvée</span></td></tr>
 </tbody></table></div>
 <div class="note piege"><div class="nt">Piège</div><p>Les « 70 octets » de 802.15.4 avec 6LoWPAN et UDP sont <strong>mon estimation</strong> à partir de la RFC 4944. La valeur exacte dépend de la compression d'en-têtes et du chiffrement choisis. L'outil ci-dessous vous laisse comparer plusieurs liens.</p></div>
 </section>
@@ -168,9 +172,9 @@
 <h3>Où en est la normalisation</h3>
 <ul>
 <li><strong>EDHOC post-quantique</strong> : le groupe IETF LAKE a des brouillons d'authentification par KEM (<code>draft-ietf-lake-authkem-edhoc</code>) et de suites post-quantiques (<code>draft-ietf-lake-pqsuites</code>, qui cible ML-KEM-512 et ML-DSA-44). Ce sont des <strong>brouillons</strong>, sans tailles de messages publiées dans ce que j'ai lu. <span class="badge b-sec">secondaire</span></li>
-<li><strong>COSE</strong> : un brouillon définit ML-DSA pour JOSE et COSE (<code>draft-ietf-cose-dilithium</code>), statut actuel non confirmé. ML-KEM pour COSE : non trouvé. <span class="badge b-ver">à vérifier</span></li>
-<li><strong>Certificats X.509</strong> : les pages des brouillons de l'IETF indiquent que ML-DSA et ML-KEM sont publiés en RFC 9881 et RFC 9935.</li>
-<li><strong>TLS hybride</strong> : X25519 + ML-KEM-768 utilise le point de code 4588 (0x11EC) ; les parts d'échange font 1 216 octets côté client et 1 120 octets côté serveur (1 184 + 32 et 1 088 + 32). La page de l'IETF le liste comme publié en RFC 10024 ; je ne l'ai pas confirmé auprès du RFC Editor. <a class="src" href="https://datatracker.ietf.org/doc/draft-ietf-tls-ecdhe-mlkem/">IETF</a></li>
+<li><strong>COSE</strong> : ML-DSA pour JOSE et COSE est publié selon la page du datatracker de l’IETF (RFC 9964, mai 2026, <span class="badge b-ver">à confirmer auprès du RFC Editor</span>). ML-KEM pour COSE : non trouvé. Détail à la page <a href="firmware.html#ietf">firmware</a>.</li>
+<li><strong>Certificats X.509</strong> : RFC 9881 (ML-DSA, octobre 2025), RFC 9935 (ML-KEM, mars 2026) et RFC 9909 (SLH-DSA, décembre 2025), lus sur rfc-editor.org. <span class="badge b-prim">primaire</span></li>
+<li><strong>TLS hybride</strong> : X25519 + ML-KEM-768 utilise le point de code 4588 (0x11EC) ; les parts d'échange font 1 216 octets côté client et 1 120 octets côté serveur (1 184 + 32 et 1 088 + 32). C'est la <strong>RFC 10024</strong> (août 2026), « Post-Quantum Traditional (PQ/T) Hybrid Key Agreement Mechanisms for TLS 1.3 », qui définit aussi SecP256r1MLKEM768 et SecP384r1MLKEM1024. <a class="src" href="https://www.rfc-editor.org/rfc/rfc10024.txt">RFC 10024</a> <span class="badge b-prim">primaire</span></li>
 </ul>
 </div>
 </section>
@@ -187,7 +191,7 @@
 <h3>Ce que disent les textes officiels</h3>
 <ul>
 <li><strong>Feuille de route européenne (23 juin 2025)</strong> : recommande de sécuriser tôt les mises à jour de logiciels et de firmware avec des signatures post-quantiques, y compris pour un produit non migré (« voie de mise à niveau »). Elle fixe fin 2030 pour des mises à jour quantum-safe par défaut. <a class="src" href="https://digital-strategy.ec.europa.eu/en/library/coordinated-implementation-roadmap-transition-post-quantum-cryptography">Commission</a> <span class="badge b-prim">primaire</span> Recommandation non contraignante.</li>
-<li><strong>CNSA 2.0 (NSA)</strong> : n'approuve que LMS et XMSS (pas leurs variantes multi-arbres) pour la signature de firmware. Les dates d'obligation divergent selon les sources secondaires (2030 ou 2033). <span class="badge b-ver">non résolu</span> Lisez la FAQ officielle.</li>
+<li><strong>CNSA 2.0 (NSA)</strong> : pour signer firmware et logiciels, la NSA n'approuve que LMS et XMSS à un seul arbre (pas HSS ni XMSS^MT), ou ML-DSA-87 ; SLH-DSA n'est approuvé pour aucun usage. Échéances : nouvelles acquisitions conformes au 1er janvier 2027, équipements non conformes retirés au 31 décembre 2030 (date à laquelle le chiffrement doit être quantum-safe par défaut), pleine conformité au 31 décembre 2031. <a class="src" href="https://media.defense.gov/2022/Sep/07/2003071836/-1/-1/0/CSI_CNSA_2.0_FAQ_.PDF">FAQ CNSA 2.0, v2.2, octobre 2026</a> <span class="badge b-prim">primaire</span> Les dates « 2025 » et « 2033 » vues dans des résumés ne figurent pas dans ce document.</li>
 <li><strong>Contrainte matérielle</strong> : un bootloader en ROM, immuable, ne peut pas changer d'algorithme. Des sources de vendeurs le citent comme risque majeur. <span class="badge b-sec">secondaire</span></li>
 </ul>
 </div>
@@ -196,12 +200,12 @@
 <section>
 <h2 id="attaques">8. Attaques physiques : l'implémentation compte autant que les maths</h2>
 <div class="card"><h4>KyberSlash : un exemple concret</h4>
-<p>Une division dont la durée dépend du secret dans des implémentations de Kyber permettait, par une simple mesure de temps, de récupérer la clé. Démontré sur Cortex-M4 et Cortex-A7 : clé Kyber-768 retrouvée en moins de 4 minutes, 10 essais sur 10, avec 6 144 chiffrés envoyés. Les bibliothèques ont été corrigées après divulgation. <a class="src" href="https://eprint.iacr.org/2024/1049">ePrint 2024/1049</a> <a class="src" href="https://tches.iacr.org/index.php/TCHES/article/view/12046">TCHES 2025</a> <span class="badge b-prim">primaire</span></p></div>
+<p>Une division dont la durée dépend du secret dans des implémentations de Kyber permettait, par une simple mesure de temps, de récupérer la clé. Démontré sur Cortex-M4 (à 168 MHz) et Cortex-A7 : clé Kyber-768 retrouvée en environ 4 minutes de bout en bout, 10 essais sur 10, l’essentiel du temps étant celui de la transmission de 6 144 chiffrés (33 secondes seulement de décapsulations). Les bibliothèques ont été corrigées après divulgation. <a class="src" href="https://eprint.iacr.org/2024/1049">ePrint 2024/1049</a> <a class="src" href="https://tches.iacr.org/index.php/TCHES/article/view/12046">TCHES 2025</a> <span class="badge b-prim">primaire</span></p></div>
 <div class="lv2 note retenir"><div class="nt">À retenir</div><p>Les standards décrivent des algorithmes, pas des implémentations sûres. Une implémentation conforme peut fuir. Sur objet physiquement accessible, il faut du code à temps constant et, pour certaines menaces, du <abbr class="g" data-g="masquage">masquage</abbr>.</p></div>
 <div class="lv3">
 <h3>Masquage : ce qu'on sait et ce qu'on ignore</h3>
 <ul>
-<li>Un ePrint de 2026 annonce environ 25 % de surcoût pour une approche de brassage fin du premier ordre sur la décapsulation ML-KEM-768 en Cortex-M4, contre 51 % pour une approche bit à bit. <span class="badge b-ver">un seul extrait de recherche, texte non lu, identifiant à confirmer</span> <a class="src" href="https://eprint.iacr.org/2026/934">ePrint 2026/934</a></li>
+<li>L’article « First-Order Masked Fine-Shuffling Implementation Against Side-Channel Attacks with Application to ML-KEM » (ePrint 2026/934, AFRICACRYPT 2026) annonce 25 % de surcoût sur la décapsulation ML-KEM-768 complète sur Cortex-M4, contre 51 % pour une variante « bit à bit » que les auteurs jugent attaquable. C’est le coût d’une contre-mesure d’ordre 1, pas celui d’un masquage complet. <a class="src" href="https://eprint.iacr.org/2026/934">ePrint 2026/934</a> <span class="badge b-prim">primaire (résumé)</span></li>
 <li>Un exposé de CRYPTO 2025 indique qu'un port masqué de ML-DSA sur Cortex-M3/M4 a été attaqué. <span class="badge b-sec">secondaire</span></li>
 <li>Je n'ai pas trouvé de chiffre de surcoût pour le masquage de ML-DSA, ni de détails sur les attaques par consommation ou électromagnétiques sur la NTT, ni sur les attaques par fautes : ne citez rien là-dessus sans lire les articles.</li>
 </ul>
@@ -226,7 +230,7 @@
 <li><a href="https://lora-developers.semtech.com/library/tech-papers-and-guides/the-book/packet-size-considerations">LoRaWAN : taille des paquets</a> <span class="badge b-sec">secondaire</span></li>
 <li><a href="https://arxiv.org/html/2603.19340">Étude énergétique RP2040</a> <span class="badge b-sec">secondaire</span></li>
 </ul>
-<div class="note verif"><div class="nt">Limites de cette page</div><p>Les tailles ML-KEM/ML-DSA/SLH-DSA viennent de RFC de l'IETF qui reprennent les FIPS ; je n'ai pas pu lire directement les PDF du NIST. Les valeurs classiques sont des valeurs standard non re-sourcées. FIPS 206 (FN-DSA) n'est pas confirmé comme publié. NB-IoT, LoRaWAN DR8 à DR11 et les chiffres de masquage restent à vérifier.</p></div>
+<div class="note verif"><div class="nt">Limites de cette page</div><p>Les tailles ML-KEM/ML-DSA/SLH-DSA viennent de RFC de l'IETF qui reprennent les FIPS ; je n'ai pas pu lire directement les PDF du NIST. Les valeurs classiques sont des valeurs standard non re-sourcées. FIPS 206 (FN-DSA) n'apparaît pas dans la liste des FIPS du NIST. Les tailles de ML-KEM, ML-DSA et SLH-DSA ont été recoupées avec les tableaux des FIPS 203, 204 et 205. LTE-M, la version 1.0.4 de la spécification LoRaWAN et le maximum de 517 octets du BLE (dérivé de 512 octets d'attribut) restent non vérifiés.</p></div>
 </section>
 
 </article>

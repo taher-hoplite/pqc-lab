@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Comprendre la PQC – PQC·LAB</title>
+<meta name="description" content="Ce que le quantique casse, pourquoi le problème LWE résiste, pourquoi hybrider, comment une mesure de temps révèle un secret : quatre démonstrations interactives.">
+<meta name="theme-color" content="#060b0e">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<script>(function(){var d=document.documentElement,t='dark';try{t=localStorage.getItem('pqc-theme')||'dark';}catch(e){}if(t==='light'||t==='dark')d.setAttribute('data-theme',t);})();</script>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body data-page="comp">
+<a class="skip" href="#main">Aller au contenu</a>
+<div id="site-header"></div>
+<div id="site-sheet"></div>
+
+<main id="main">
+<div class="wrap">
+  <header class="pagehead">
+    <div class="crumbs"><a href="index.html">Accueil</a> / Comprendre</div>
+    <div class="eyebrow">Les idées de base, en manipulant</div>
+    <h1>Comprendre la PQC</h1>
+    <p class="lead">Quatre idées, chacune avec une petite démonstration : ce que le quantique casse, pourquoi un problème bruité résiste, pourquoi on combine deux algorithmes, et comment une simple mesure de temps peut trahir un secret.</p>
+    <div class="meta"><span>Lecture : 10 à 15 min</span><span>Les démonstrations sont des modèles jouets, expliqués comme tels</span></div>
+  </header>
+</div>
+
+<div class="wrap page has-toc">
+<aside class="toc" id="toc" aria-label="Sommaire"></aside>
+<article>
+<div id="toc-m"></div>
+
+<section>
+<h2 id="casse" style="margin-top:28px">1. Ce que le quantique casse, et ce qu'il épargne</h2>
+<p>Deux algorithmes quantiques comptent pour la cryptographie, et ils n'ont pas du tout le même effet.</p>
+<div class="tw"><table style="min-width:600px">
+<thead><tr><th>Algorithme</th><th>Ce qu'il attaque</th><th>Effet</th></tr></thead>
+<tbody>
+<tr><td><abbr class="g" data-g="shor">Shor</abbr> (1994)</td><td>Factorisation, logarithme discret : RSA, Diffie-Hellman, courbes elliptiques</td><td>Casse en temps polynomial : la sécurité tombe à zéro, quelle que soit la taille de clé raisonnable.</td></tr>
+<tr><td><abbr class="g" data-g="grover">Grover</abbr> (1996)</td><td>Recherche exhaustive : clés symétriques (AES), préimages de hash</td><td>Gain quadratique : il faut environ la racine carrée du nombre d'essais. On compense en doublant la taille de clé.</td></tr>
+</tbody></table></div>
+<div class="note retenir"><div class="nt">À retenir</div><p>L'asymétrique actuel doit être <strong>remplacé</strong> ; le symétrique doit seulement être <strong>agrandi</strong> (AES-256 plutôt qu'AES-128). C'est pourquoi la PQC concerne l'échange de clés et les signatures, pas le chiffrement de masse.</p></div>
+<div class="lv2">
+<h3>Les catégories de sécurité du NIST</h3>
+<p>Le NIST range les paramètres post-quantiques dans des catégories qui se comparent à des attaques connues : la catégorie 1 vaut une recherche de clé AES-128, la 3 une recherche AES-192, la 5 une recherche AES-256.</p>
+<div class="tw"><table style="min-width:520px"><thead><tr><th>Standard</th><th class="n">Paramètre</th><th class="n">Catégorie</th></tr></thead><tbody>
+<tr><td>ML-KEM (FIPS 203)</td><td class="n">512 / 768 / 1024</td><td class="n">1 / 3 / 5</td></tr>
+<tr><td>ML-DSA (FIPS 204)</td><td class="n">44 / 65 / 87</td><td class="n">2 / 3 / 5</td></tr>
+</tbody><caption>Valeurs des FIPS 203 et 204 ; à recouper avec les documents du NIST.</caption></table></div>
+</div>
+<div class="lv3 note piege"><div class="nt">Piège</div><p>Le gain de Grover est un maximum théorique : l'exécuter exige un circuit très profond, qui limite son avantage réel. « On divise les bits par deux » est un ordre de grandeur de prudence, pas une mesure.</p></div>
+<div class="lv2">
+<h3>Et la distribution quantique de clés (QKD) ?</h3>
+<p>La <abbr class="g" data-g="qkd">QKD</abbr> utilise la physique quantique pour échanger des clés, avec du matériel dédié. Elle ne remplace pas la PQC : elle ne fait que distribuer des clés, pas authentifier ni signer.</p>
+<ul>
+<li><strong>NSA</strong> : elle ne considère généralement pas la QKD comme une solution pratique pour protéger les systèmes de sécurité nationale, et demande à leurs propriétaires de ne pas l'utiliser ni la rechercher sans la consulter. <a class="src" href="https://media.defense.gov/2022/Sep/07/2003071836/-1/-1/0/CSI_CNSA_2.0_FAQ_.PDF">FAQ CNSA 2.0, v2.2</a> <span class="badge b-prim">primaire</span></li>
+<li><strong>ANSSI, BSI, NLNCSA et forces armées suédoises</strong> (position commune, janvier 2024) : la QKD n'est utilisable aujourd'hui que dans des cas de niche et n'est pas encore assez mature du point de vue de la sécurité ; la priorité est la migration vers la PQC. <a class="src" href="https://www.bsi.bund.de/SharedDocs/Downloads/EN/BSI/Crypto/Quantum_Positionspapier.pdf?__blob=publicationFile&amp;v=1">BSI</a> <span class="badge b-prim">primaire</span> <span class="badge b-ver">lu par un agent, pas par moi</span></li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2 id="lwe">2. Pourquoi le bruit protège : le problème LWE</h2>
+<p>ML-KEM et ML-DSA reposent sur le problème <abbr class="g" data-g="lwe">LWE</abbr> (Learning With Errors). L'idée : on publie des équations <em>presque</em> justes. Sans l'erreur, un système linéaire se résout facilement ; avec une petite erreur ajoutée à chaque équation, retrouver le secret devient très difficile quand les dimensions sont grandes.</p>
+<p>La démonstration ci-dessous est un <strong>jouet à une seule dimension</strong>. Un secret caché s multiplie chaque nombre a, on ajoute une petite erreur e, et on publie b = a·s + e (modulo 97). Chaque point est un couple (a, b). Cherchez s en déplaçant votre hypothèse : les points verts sont ceux que votre hypothèse explique, à l'erreur près.</p>
+
+<div class="tool" id="tool-lwe">
+<div class="tool-h"><h3>lwe --toy</h3><span class="tag">Interactif</span></div>
+<div class="ctl">
+  <div><label for="lwe-n">Nombre d'équations : <span id="lwe-n-v"></span></label><input id="lwe-n" type="range" min="6" max="60" value="30"></div>
+  <div><label for="lwe-noise">Taille de l'erreur : <span id="lwe-noise-v"></span></label><input id="lwe-noise" type="range" min="0" max="14" value="3"></div>
+  <div><label for="lwe-guess">Votre hypothèse pour s : <span id="lwe-guess-v"></span></label><input id="lwe-guess" type="range" min="0" max="96" value="10"></div>
+</div>
+<svg id="lwe-svg" viewBox="0 0 400 300" role="img" aria-label="Nuage de points (a, b) et droite de l'hypothèse" style="width:100%;height:auto;background:var(--bg-sunk);border:1px solid var(--line)"></svg>
+<div class="legend"><span><i style="background:var(--accent)"></i>point expliqué par votre hypothèse</span><span><i style="background:var(--amber)"></i>point non expliqué</span><span><i style="background:var(--accent-2)"></i>droite de votre hypothèse</span></div>
+<div class="out"><div class="cell"><b id="lwe-score">—</b><span>points expliqués</span></div><div class="cell"><b id="lwe-compat">—</b><span>secrets compatibles avec tout</span></div></div>
+<div class="verdict mid" id="lwe-verdict"></div>
+<div class="rowgap" style="margin-top:12px"><button type="button" class="btn sec" id="lwe-new" style="min-height:38px;padding:0 14px">Nouveau secret</button><button type="button" class="btn sec" id="lwe-reveal" style="min-height:38px;padding:0 14px">Révéler s</button></div>
+</div>
+
+<div class="note retenir"><div class="nt">À retenir</div><p>Avec peu d'équations et beaucoup d'erreur, <strong>plusieurs secrets</strong> expliquent aussi bien les observations : le secret est caché. Avec beaucoup d'équations et peu d'erreur, il n'en reste qu'un : il est exposé. En une dimension, on teste les 97 valeurs en un instant ; la sécurité réelle vient de la dimension.</p></div>
+<div class="lv2">
+<h3>Ce qui change en vrai</h3>
+<ul>
+<li>ML-KEM travaille modulo <strong>q = 3329</strong>, avec des polynômes de degré 256, regroupés par vecteurs de longueur k = 2, 3 ou 4. Le secret d'ML-KEM-768 compte donc 3 × 256 = <strong>768 coefficients</strong>, d'où les deux ordres de grandeur d'écart avec le jouet ci-dessus. <span class="badge b-prim">FIPS 203</span> <span class="badge b-ver">à recouper</span></li>
+<li>On ne teste pas toutes les valeurs : la dimension rend la recherche exhaustive impossible, et les meilleures attaques connues passent par des algorithmes de réduction de réseaux.</li>
+<li>C'est aussi ce qui explique la <strong>taille des clés</strong> : une clé publique contient des vecteurs de plusieurs centaines de coefficients bruités (voir la page <a href="iot.html#tailles">objets contraints</a>).</li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2 id="hybride">3. Pourquoi combiner deux algorithmes</h2>
+<p>Un schéma récent peut cacher une faille ; un schéma ancien tombera devant un ordinateur quantique. L'<abbr class="g" data-g="hybride">hybridation</abbr> dérive la clé de session des <strong>deux</strong> secrets : il faut casser les deux pour la perdre. Activez des scénarios.</p>
+<div class="tool" id="tool-hybrid">
+<div class="tool-h"><h3>hybrid --scenario</h3><span class="tag">Interactif</span></div>
+<div class="pill-row" style="margin-top:0">
+  <button type="button" id="hy-quantum" aria-pressed="false" class="tabs-btn">Un ordinateur quantique existe</button>
+  <button type="button" id="hy-flaw" aria-pressed="false" class="tabs-btn">Le schéma post-quantique a une faille</button>
+</div>
+<div class="out">
+  <div class="cell" id="hy-classic"><b>—</b><span>X25519 seul</span></div>
+  <div class="cell" id="hy-pq"><b>—</b><span>ML-KEM-768 seul</span></div>
+  <div class="cell" id="hy-both"><b>—</b><span>Hybride X25519 + ML-KEM-768</span></div>
+</div>
+<div class="verdict mid" id="hy-verdict"></div>
+</div>
+<p class="lv2">Le coût : <strong>plus d'octets</strong>. La part d'échange du TLS hybride X25519 + ML-KEM-768 fait 1 216 octets côté client et 1 120 côté serveur, contre 32 pour X25519 seul. <a class="src" href="https://datatracker.ietf.org/doc/draft-ietf-tls-ecdhe-mlkem/">IETF</a></p>
+<div class="note retenir"><div class="nt">À retenir</div><p>L'ANSSI recommande fortement l'hybridation, sans obligation réglementaire à ce jour, et ne la recommande pas systématiquement pour les signatures à base de hash. <span class="badge b-sec">FAQ ANSSI, via résumé</span> <span class="badge b-ver">à vérifier sur cyber.gouv.fr</span></p></div>
+</section>
+
+<section>
+<h2 id="temps">4. Quand le temps de calcul trahit le secret</h2>
+<p>Un algorithme peut être mathématiquement sûr et son implémentation fuir. L'exemple classique : comparer un code chiffre par chiffre et s'arrêter dès qu'un chiffre est faux. Plus le début du code est juste, plus la comparaison dure. Un attaquant qui <em>mesure</em> ce temps devine le code chiffre par chiffre.</p>
+<div class="tool" id="tool-timing">
+<div class="tool-h"><h3>timing --pin</h3><span class="tag">Interactif</span></div>
+<div class="pill-row" style="margin-top:0">
+  <button type="button" data-mode="naive" aria-pressed="true">Comparaison naïve</button>
+  <button type="button" data-mode="const" aria-pressed="false">Temps constant</button>
+</div>
+<div class="out"><div class="cell"><b id="tm-known">_ _ _ _</b><span>code retrouvé</span></div><div class="cell"><b id="tm-q">0</b><span>mesures effectuées</span></div></div>
+<div class="bars" id="tm-bars"></div>
+<div class="verdict mid" id="tm-verdict"></div>
+<div class="rowgap" style="margin-top:12px"><button type="button" class="btn" id="tm-next" style="min-height:40px;padding:0 16px">Garder le chiffre le plus long</button><button type="button" class="btn sec" id="tm-new" style="min-height:40px;padding:0 16px">Nouveau code</button></div>
+</div>
+<div class="note retenir"><div class="nt">À retenir</div><p>40 mesures suffisent à retrouver un code de 4 chiffres, au lieu de 10 000 essais à l'aveugle. Le <strong>temps constant</strong> supprime la fuite : toutes les comparaisons durent pareil.</p></div>
+<div class="lv2">
+<h3>Le même principe, en vrai : KyberSlash</h3>
+<p>Dans des implémentations de Kyber, une division dont la durée dépendait du secret a permis de retrouver une clé Kyber-768 sur Cortex-M4, en environ 4 minutes de bout en bout (10 essais sur 10), l’essentiel du temps étant celui de la transmission de 6 144 chiffrés. Les bibliothèques ont été corrigées après divulgation. <a class="src" href="https://eprint.iacr.org/2024/1049">ePrint 2024/1049</a> <span class="badge b-prim">source primaire</span> Voir la page <a href="iot.html#attaques">objets contraints</a>.</p>
+</div>
+</section>
+
+<section>
+<h2 id="chronologie">5. La chronologie des standards</h2>
+<p>Qui a décidé quoi, et quand. Les dates ont été recoupées avec des pages officielles du NIST, de l'Union européenne et de la NSA lues pour ce site ; les éléments à venir sont signalés.</p>
+<div id="tl">
+<div class="filters" role="group" aria-label="Filtrer la chronologie">
+  <button type="button" data-tl="all" aria-pressed="true">Tout</button>
+  <button type="button" data-tl="nist" aria-pressed="false">NIST</button>
+  <button type="button" data-tl="eu" aria-pressed="false">Europe</button>
+  <button type="button" data-tl="nsa" aria-pressed="false">NSA</button>
+  <button type="button" data-tl="ietf" aria-pressed="false">IETF</button>
+</div>
+<ul class="slots wide">
+<li class="slot" data-cat="nist" data-date="2016-12-20"><time>20/12/2016</time><div><span class="t">Le NIST lance l'appel à propositions pour la cryptographie post-quantique</span><span class="w">Date limite de soumission : 30 novembre 2017</span><span class="chip k1">NIST</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="nist" data-date="2020-07-22"><time>22/07/2020</time><div><span class="t">Annonce des finalistes du troisième tour</span><span class="w">NISTIR 8309</span><span class="chip k1">NIST</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="nist" data-date="2020-10-29"><time>10/2020</time><div><span class="t">NIST SP 800-208 : signatures à base de hash à état (LMS, XMSS)</span><span class="w">Version finale d'octobre 2020</span><span class="chip k1">NIST</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="nist" data-date="2022-07-05"><time>05/07/2022</time><div><span class="t">Sélection de quatre algorithmes : Kyber, Dilithium, Falcon, SPHINCS+</span><span class="w">Fin du troisième tour ; HQC et d'autres passent au quatrième tour</span><span class="chip k1">NIST</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="ietf" data-date="2024-03-01"><time>03/2024</time><div><span class="t">RFC 9528 : EDHOC, échange de clés léger pour l'IoT</span><span class="w">Version classique ; les variantes post-quantiques sont des brouillons</span><span class="chip k4">IETF</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="eu" data-date="2024-04-11"><time>11/04/2024</time><div><span class="t">Recommandation de la Commission sur une feuille de route coordonnée</span><span class="w">Base de la feuille de route publiée en juin 2025</span><span class="chip k5">Europe</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="nist" data-date="2024-08-13"><time>13/08/2024</time><div><span class="t">Publication des FIPS 203 (ML-KEM), 204 (ML-DSA) et 205 (SLH-DSA)</span><span class="w">Les projets dataient du 24 août 2023. La page de FIPS 203 signale un point à corriger dans une mise à jour future (note du 17 novembre 2025).</span><span class="chip k1">NIST</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="nist" data-date="2024-11-12"><time>12/11/2024</time><div><span class="t">Projet de NIST IR 8547 : calendrier de transition</span><span class="w">Commentaires jusqu'au 10 janvier 2025</span><span class="chip k1">NIST</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="eu" data-date="2024-12-10"><time>10/12/2024</time><div><span class="t">Le Cyber Resilience Act entre en vigueur</span><span class="w">Règlement (UE) 2024/2847</span><span class="chip k5">Europe</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="nist" data-date="2025-03-11"><time>11/03/2025</time><div><span class="t">Le NIST sélectionne HQC comme second mécanisme d'encapsulation de clé</span><span class="w">NIST IR 8545. Aucun projet de FIPS 207 trouvé à ce jour.</span><span class="chip k1">NIST</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="eu" data-date="2025-06-23"><time>23/06/2025</time><div><span class="t">Publication de la feuille de route européenne de transition vers la PQC</span><span class="w">Document de recommandations adressé aux États membres</span><span class="chip k5">Europe</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="ietf" data-date="2025-10-01"><time>10/2025</time><div><span class="t">RFC 9881 : identifiants d'algorithmes ML-DSA pour les certificats X.509</span><span class="w">RFC 9909 (SLH-DSA) en décembre 2025, RFC 9935 (ML-KEM) en mars 2026</span><span class="chip k4">IETF</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="eu" data-date="2026-06-11"><time>11/06/2026</time><div><span class="t">CRA : application du chapitre IV (organismes d'évaluation de la conformité)</span><span class="chip k5">Europe</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="ietf" data-date="2026-08-01"><time>08/2026</time><div><span class="t">RFC 10024 : échange de clés hybride post-quantique pour TLS 1.3</span><span class="w">Définit X25519MLKEM768, SecP256r1MLKEM768 et SecP384r1MLKEM1024</span><span class="chip k4">IETF</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="eu" data-date="2026-09-11"><time>11/09/2026</time><div><span class="t">CRA : obligations de signalement (article 14)</span><span class="chip k5">Europe</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="nist" data-date="2026-10-27"><time>27/10/2026</time><div><span class="t">Version finale de NIST IR 8547 : dépréciation après 2030, interdiction après 2035</span><span class="w">Pour les algorithmes à clé publique vulnérables au quantique. La correspondance exacte ligne par ligne des tableaux est à relire dans le PDF avant de la citer.</span><span class="chip k1">NIST</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="nsa" data-date="2026-10-15"><time>10/2026</time><div><span class="t">FAQ CNSA 2.0 de la NSA, version 2.2</span><span class="w">LMS, XMSS, ML-KEM-1024, ML-DSA-87 ; FN-DSA et SLH-DSA non retenus</span><span class="chip k3">NSA</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="nist" data-date="2026-11-18"><time>à ce jour</time><div><span class="t">FIPS 206 (FN-DSA) : non publié</span><span class="w">Absent de la liste des FIPS du NIST ; une présentation du NIST de 2026 la donne « en cours de développement ». À revérifier sur csrc.nist.gov.</span><span class="chip k1">NIST</span> <span class="badge b-prim">primaire</span> <span class="badge b-ver">peut changer</span></div></li>
+<li class="slot" data-cat="nsa" data-date="2027-01-01"><time>01/01/2027</time><div><span class="t">NSA : nouvelles acquisitions conformes à CNSA 2.0</span><span class="w">Aucun nouveau produit ne devrait avoir de racine de confiance gravée non quantum-safe</span><span class="chip k3">NSA</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="eu" data-date="2026-12-31"><time>31/12/2026</time><div><span class="t">Europe : premières étapes réalisées par tous les États membres</span><span class="w">Feuilles de route nationales initiales, pilotes lancés pour les cas à risque élevé et moyen</span><span class="chip k5">Europe</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="eu" data-date="2027-12-11"><time>11/12/2027</time><div><span class="t">CRA : application générale</span><span class="chip k5">Europe</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="nsa" data-date="2030-12-31"><time>31/12/2030</time><div><span class="t">NSA : retrait des équipements qui ne gèrent pas CNSA 2.0</span><span class="w">Date à laquelle le chiffrement est attendu quantum-safe par défaut</span><span class="chip k3">NSA</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="eu" data-date="2030-12-31"><time>31/12/2030</time><div><span class="t">Europe : cas à haut risque migrés, mises à jour de firmware quantum-safe par défaut</span><span class="chip k5">Europe</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="nsa" data-date="2031-12-31"><time>31/12/2031</time><div><span class="t">NSA : pleine conformité à CNSA 2.0</span><span class="w">Le décret américain EO 14412 vise aussi 2031 au plus tard pour les systèmes fédéraux civils sensibles</span><span class="chip k3">NSA</span> <span class="badge b-prim">primaire</span></div></li>
+<li class="slot" data-cat="eu" data-date="2035-12-31"><time>31/12/2035</time><div><span class="t">Europe : risque moyen migré ; risque faible autant que possible</span><span class="chip k5">Europe</span> <span class="badge b-prim">primaire</span></div></li>
+</ul>
+</div>
+<div class="note verif"><div class="nt">À vérifier</div><p>FIPS 207 (HQC) : aucun projet publié trouvé ; le calendrier « final en 2027 » ne vient que de la presse. RFC 9964 (ML-DSA pour COSE, mai 2026) : lu sur le datatracker, à confirmer sur rfc-editor.org.</p></div>
+</section>
+
+<section>
+<h2 id="limites">Limites de cette page</h2>
+<div class="note verif"><div class="nt">À vérifier</div><p>Les trois démonstrations sont des <strong>modèles jouets</strong> écrits pour illustrer une idée, pas des implémentations de ML-KEM ni de TLS. Les catégories de sécurité et les paramètres d'ML-KEM viennent de ma connaissance des FIPS 203 et 204 et sont à recouper avec les documents du NIST.</p></div>
+</section>
+
+</article>
+</div>
+</main>
+
+<div id="site-footer"></div>
+<nav id="site-tabbar"></nav>
+<script src="assets/glossary.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tools.js"></script>
+</body>
+</html>
