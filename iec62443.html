@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>IEC 62443 et PQC – PQC Lab</title>
 <meta name="description" content="La série IEC 62443 partie par partie : exigences fondamentales, niveaux de sécurité, zones et conduits, cryptographie, certification, et ce que la norme dit (ou ne dit pas) de la cryptographie post-quantique.">
-<meta name="theme-color" content="#f7f6f2">
-<script>(function(){try{var t=localStorage.getItem('pqc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<meta name="theme-color" content="#060b0e">
+<script>(function(){var d=document.documentElement,t='dark';try{t=localStorage.getItem('pqc-theme')||'dark';}catch(e){}if(t==='light'||t==='dark')d.setAttribute('data-theme',t);})();</script>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body data-page="iec">
@@ -40,8 +40,6 @@
 </div>
 <div class="note retenir"><div class="nt">À retenir</div>
 <p>L'IEC 62443 est un <strong>cadre de gestion du risque</strong>, pas un catalogue d'algorithmes. Sur la cryptographie, elle renvoie à des standards externes reconnus : c'est par ce chemin que la PQC y entrera. Les normes sont payantes : ce que j'écris sur leur contenu vient de sources secondaires, et je le signale.</p></div>
-<div class="note dire"><div class="nt">À dire en conversation</div>
-<p>« L'IEC 62443 ne liste pas d'algorithmes et, à ma connaissance, ne parle pas encore de PQC. Mais l'exigence sur la cryptographie renvoie à des mécanismes reconnus et à une gestion de clés documentée, donc l'adoption de ML-KEM et de ML-DSA y passera par les standards externes, pas par une révision de la norme. »</p></div>
 </section>
 
 <section>
@@ -197,29 +195,7 @@
 </ul>
 </section>
 
-<section>
-<h2 id="conversation">11. Tenir la conversation</h2>
-<div class="grid g2">
-<div class="card"><h4>Ma réponse en 30 secondes</h4>
-<p>« L'IEC 62443 organise la sécurité industrielle autour de zones, de conduits et de niveaux de sécurité, avec des parties pour l'exploitant, l'intégrateur et le fournisseur. Elle exige une cryptographie reconnue et bien gérée, sans imposer d'algorithme. La PQC y entrera donc par les standards externes, et elle pèse surtout sur les exigences de PKI et d'intégrité logicielle. »</p></div>
-<div class="card"><h4>Questions à poser</h4>
-<ul>
-<li>Vos produits sont-ils certifiés ISASecure SDLA ou CSA, et à quel niveau de maturité ?</li>
-<li>Comment l'exigence SR 4.3 est-elle justifiée aujourd'hui dans votre dossier ?</li>
-<li>Y a-t-il un groupe de travail ISA99 ou TC65 sur la PQC ?</li>
-<li>Quel SL-T visez-vous pour vos zones les plus critiques ?</li>
-<li>Comment gérez-vous la mise à jour signée d'un composant déjà certifié ?</li>
-</ul></div>
-</div>
-<div class="note piege"><div class="nt">Pièges à éviter</div>
-<ul style="margin:6px 0 0">
-<li>Dire que la norme « impose » ou « interdit » un algorithme : rien de lu ne le dit.</li>
-<li>Confondre SL-T (cible), SL-C (capacité) et SL-A (atteint).</li>
-<li>Présenter la certification ISASecure comme une obligation légale : ce n'en est pas une.</li>
-<li>Citer la norme mot pour mot : elle est payante, et je n'ai pas pu la lire.</li>
-</ul></div>
-<p><a class="btn sec" href="conversation.html">Réviser avec les fiches mémo</a></p>
-</section>
+
 
 <section>
 <h2 id="sources">Sources et niveau de confiance</h2>

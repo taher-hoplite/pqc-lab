@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PQC sur objets contraints – PQC Lab</title>
 <meta name="description" content="Tailles de clés et de signatures post-quantiques, liens radio, benchmarks sur microcontrôleur, protocoles légers et signature de firmware : ce qui coince sur les objets connectés.">
-<meta name="theme-color" content="#f7f6f2">
-<script>(function(){try{var t=localStorage.getItem('pqc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<meta name="theme-color" content="#060b0e">
+<script>(function(){var d=document.documentElement,t='dark';try{t=localStorage.getItem('pqc-theme')||'dark';}catch(e){}if(t==='light'||t==='dark')d.setAttribute('data-theme',t);})();</script>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body data-page="iot">
@@ -42,8 +42,6 @@
 </div>
 <div class="note retenir"><div class="nt">À retenir</div>
 <p>Le coût de la PQC sur un objet connecté se paie sur trois ressources à la fois : <strong>la bande passante</strong> (clés et signatures bien plus grosses), <strong>la mémoire</strong> (surtout la pile pour signer) et <strong>l'énergie</strong> (radio et calcul). La bande passante est souvent la plus sévère, parce que les trames radio sont minuscules.</p></div>
-<div class="note dire"><div class="nt">À dire en conversation</div>
-<p>« Le problème n'est pas que le calcul soit lent : ML-KEM est rapide, quelques dizaines de millisecondes sur un Cortex-M4. Le problème, c'est la taille des clés et des signatures face à des liens radio de quelques dizaines d'octets, et la RAM nécessaire pour signer. »</p></div>
 </section>
 
 <section>
@@ -120,7 +118,6 @@
 <div class="verdict mid" id="sz-verdict"></div>
 <p class="sub" style="color:var(--fg-3);font-size:.82rem;margin:12px 0 0">Modèle : un handshake de type TLS 1.3 avec authentification du serveur envoie une clé publique KEM, reçoit un chiffré, puis n certificats (chacun avec une clé publique et la signature de son émetteur) et une signature de preuve de possession. La racine n'est pas envoyée. Les retransmissions, la fragmentation propre au protocole et les en-têtes ne sont pas comptés : le résultat est un <em>minimum</em>.</p>
 </div>
-<div class="note dire"><div class="nt">À dire en conversation</div><p>« Pour un handshake avec un certificat feuille, ML-DSA-65 et ML-KEM-768, il faut environ 10,8 Kio de cryptographie brute. Sur 802.15.4, avec environ 70 octets utiles par trame, ça fait environ 155 trames pour un seul handshake, contre 4 en classique. »</p></div>
 <div class="lv2 note piege"><div class="nt">Vérifiez avant de citer</div><p>Calcul : 1 184 + 1 088 (KEM) + 2 × 3 309 (deux signatures) + 1 952 (une clé publique) = 10 842 octets pour un certificat feuille ; avec <em>zéro</em> certificat (clé connue du pair), 1 184 + 1 088 + 3 309 = 5 581 octets. Utilisez l'outil pour retrouver chaque cas.</p></div>
 </section>
 
@@ -185,7 +182,7 @@
   <div class="card"><h4>Signatures à base de hash (LMS, XMSS)</h4><p>Standardisées par le NIST dans la SP 800-208 depuis octobre 2020. <a class="src" href="https://csrc.nist.gov/pubs/sp/800/208/final">NIST</a> <span class="badge b-prim">primaire</span> Exemple LMS_SHA256_M32_H10 avec LMOTS W8 : clé publique de 56 octets, signature de 1 452 octets. <a class="src" href="https://datatracker.ietf.org/doc/html/rfc8554">RFC 8554</a></p></div>
   <div class="card"><h4>Le défaut : l'état</h4><p>Une clé à usage unique ne doit jamais signer deux fois, sous peine de perdre la sécurité. La signature doit donc être faite dans un environnement contrôlé, typiquement un HSM, pas sur l'objet.</p></div>
 </div>
-<div class="note dire"><div class="nt">Raisonnement, pas une source</div><p>On privilégie souvent le hachage pour le firmware parce que la sécurité ne repose que sur des hypothèses sur les fonctions de hachage, que la vérification est légère en code et en RAM, et que la signature se fait hors ligne. C'est ma lecture des propriétés ; je n'ai pas trouvé de source qui les énonce ainsi.</p></div>
+<div class="note piege"><div class="nt">Raisonnement, pas une source</div><p>On privilégie souvent le hachage pour le firmware parce que la sécurité ne repose que sur des hypothèses sur les fonctions de hachage, que la vérification est légère en code et en RAM, et que la signature se fait hors ligne. C'est ma lecture des propriétés ; je n'ai pas trouvé de source qui les énonce ainsi.</p></div>
 <div class="lv2">
 <h3>Ce que disent les textes officiels</h3>
 <ul>
@@ -211,28 +208,7 @@
 </div>
 </section>
 
-<section>
-<h2 id="conversation">9. Tenir la conversation</h2>
-<div class="grid g2">
-<div class="card"><h4>Ma réponse en 30 secondes</h4>
-<p>« Sur un objet contraint, la PQC pose un problème de ressources avant d'être un problème de sécurité. Le calcul est raisonnable : ML-KEM tourne en une trentaine de millisecondes sur un Cortex-M4. Mais les clés et les signatures sont des dizaines de fois plus grosses, ce qui explose la fragmentation sur des liens de quelques dizaines d'octets, et signer en ML-DSA exige beaucoup de RAM. »</p></div>
-<div class="card"><h4>Questions à poser</h4>
-<ul>
-<li>Quelle classe de dispositif visez-vous, et avec quelle pile disponible ?</li>
-<li>Sur quel lien radio, et avec quelle charge utile par trame ?</li>
-<li>Le firmware est-il signé par une clé à état, et qui la garde ?</li>
-<li>Avez-vous mesuré l'énergie, pas seulement les cycles ?</li>
-<li>L'implémentation est-elle à temps constant, et a-t-elle été évaluée contre les canaux auxiliaires ?</li>
-</ul></div>
-</div>
-<div class="note piege"><div class="nt">Pièges à éviter</div>
-<ul style="margin:6px 0 0">
-<li>Dire que « la PQC est trop lente » : le calcul n'est pas le goulot, la taille l'est.</li>
-<li>Citer des tailles ou des durées sans nommer la variante : ML-KEM-512, 768 et 1024 diffèrent du simple au double.</li>
-<li>Oublier que les benchmarks mesurent un MCU confortable, pas un composant de classe 1.</li>
-</ul></div>
-<p><a class="btn sec" href="conversation.html">Réviser avec les fiches mémo</a></p>
-</section>
+
 
 <section>
 <h2 id="sources">Sources et niveau de confiance</h2>

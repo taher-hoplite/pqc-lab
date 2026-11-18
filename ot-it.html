@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>OT vs IT et PQC – PQC Lab</title>
 <meta name="description" content="Durée de vie, disponibilité, protocoles industriels et modèle de Purdue : pourquoi la migration post-quantique est différente dans les systèmes industriels. Avec calculateur de l'inégalité de Mosca.">
-<meta name="theme-color" content="#f7f6f2">
-<script>(function(){try{var t=localStorage.getItem('pqc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<meta name="theme-color" content="#060b0e">
+<script>(function(){var d=document.documentElement,t='dark';try{t=localStorage.getItem('pqc-theme')||'dark';}catch(e){}if(t==='light'||t==='dark')d.setAttribute('data-theme',t);})();</script>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body data-page="ot">
@@ -39,8 +39,6 @@
 </div>
 <div class="note retenir"><div class="nt">À retenir</div>
 <p>En OT, la question n'est pas seulement « quand migrer le chiffrement ? » mais « <strong>comment signer, vérifier et mettre à jour</strong> des équipements qui resteront vingt ans sur le terrain ? ». Les textes officiels que j'ai lus insistent davantage sur l'intégrité (mises à jour signées, accès distant) que sur la confidentialité à long terme.</p></div>
-<div class="note dire"><div class="nt">À dire en conversation</div>
-<p>« La menace “stocker maintenant, déchiffrer plus tard” pèse sur la confidentialité. Mais en OT, la donnée de terrain est surtout périssable : ce qui compte, c'est l'authenticité des commandes et des mises à jour. Et un firmware signé aujourd'hui doit encore être vérifiable dans vingt ans. »</p></div>
 </section>
 
 <section>
@@ -175,28 +173,7 @@
 <div class="note piege"><div class="nt">Piège</div><p>Des sites de vendeurs affirment que NIS 2 et le CRA « imposent la crypto-agilité à partir de 2026 avec transition jusqu'en 2030 ». Je n'ai pas pu le confirmer : le mot « agilité » n'apparaît pas dans mes sources sur NIS 2, et l'échéance 2030 vient de la feuille de route non contraignante. Ne le répétez pas sans lire les textes.</p></div>
 </section>
 
-<section>
-<h2 id="conversation">8. Tenir la conversation</h2>
-<div class="grid g2">
-<div class="card"><h4>Ma réponse en 30 secondes</h4>
-<p>« En IT, on migre en quelques années parce qu'on peut mettre à jour. En OT, un équipement dure vingt ans, ne s'arrête pas pour un patch et parle parfois des protocoles sans authentification. La migration post-quantique y commence donc par l'inventaire et par un chemin de mise à jour signé, avant même de parler de chiffrement. »</p></div>
-<div class="card"><h4>Questions à poser</h4>
-<ul>
-<li>Combien de vos équipements peuvent recevoir une mise à jour de firmware signée ?</li>
-<li>Savez-vous quelle cryptographie est dans vos automates ? L'avez-vous inventoriée ?</li>
-<li>Quels accès distants (maintenance, VPN) traversent la DMZ ?</li>
-<li>Quels équipements seront encore en service en 2035 ?</li>
-<li>La crypto est-elle figée en ROM ou remplaçable ?</li>
-</ul></div>
-</div>
-<div class="note piege"><div class="nt">Pièges à éviter</div>
-<ul style="margin:6px 0 0">
-<li>Appliquer tel quel l'inégalité de Mosca à un firmware : elle concerne la confidentialité.</li>
-<li>Dire « l'OT est vulnérable à la PQC » sans distinguer les protocoles : Modbus classique n'a pas de crypto à migrer, DNP3 SAv5 repose sur des MAC symétriques.</li>
-<li>Présenter la feuille de route UE comme une obligation légale : c'est une recommandation.</li>
-</ul></div>
-<p><a class="btn sec" href="iec62443.html">Suite : l'IEC 62443</a> <a class="btn sec" href="conversation.html">Fiches mémo</a></p>
-</section>
+
 
 <section>
 <h2 id="sources">Sources et niveau de confiance</h2>

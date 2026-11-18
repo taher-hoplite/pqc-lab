@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>PQC Lab – le post-quantique, là où il devient difficile</title>
-<meta name="description" content="Cryptographie post-quantique pour objets connectés et systèmes industriels : tailles et benchmarks, protocoles, OT vs IT, IEC 62443, outils interactifs et fiches pour préparer une conversation d'expert.">
-<meta name="theme-color" content="#f7f6f2">
-<script>(function(){try{var t=localStorage.getItem('pqc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<title>PQC·LAB – le post-quantique, là où ça devient difficile</title>
+<meta name="description" content="Carnet de notes sur la cryptographie post-quantique pour objets connectés et systèmes industriels : tailles, benchmarks, protocoles, OT vs IT, IEC 62443, avec des outils interactifs.">
+<meta name="theme-color" content="#060b0e">
+<script>(function(){var d=document.documentElement,t='dark';try{t=localStorage.getItem('pqc-theme')||'dark';}catch(e){}if(t==='light'||t==='dark')d.setAttribute('data-theme',t);})();</script>
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body data-page="home">
@@ -16,72 +16,73 @@
 
 <main id="main">
 <section class="hero">
-  <svg class="lattice" id="lattice" viewBox="0 0 400 400" aria-hidden="true"></svg>
   <div class="hero-in">
-    <div class="eyebrow">Cryptographie post-quantique · IoT · OT</div>
-    <h1>Le post-quantique, là où il devient difficile</h1>
-    <p class="lead">Objets connectés et systèmes industriels : les chiffres, les protocoles et les normes, avec leurs sources, des outils pour les manipuler et de quoi préparer une conversation d'expert.</p>
-    <div class="cta">
-      <a class="btn" href="iot.html">Commencer par les objets contraints <span aria-hidden="true">→</span></a>
-      <a class="btn sec" href="conversation.html">Préparer une conversation</a>
+    <div>
+      <div class="eyebrow">cryptographie post-quantique · iot · ot</div>
+      <h1 style="margin-top:14px">Le post-quantique, là où ça devient difficile</h1>
+      <p class="lead">Un carnet de notes pour comprendre ce que la cryptographie post-quantique change sur les objets connectés et les systèmes industriels : les chiffres, les protocoles, les normes, chacun avec sa source.</p>
+      <div class="cta">
+        <a class="btn" href="iot.html">Objets contraints →</a>
+        <a class="btn sec" href="reviser.html">Réviser</a>
+      </div>
+    </div>
+    <div class="term" aria-label="Exemple : comparaison des tailles">
+      <div class="term-bar"><i></i><i></i><i></i><span>pqc — tailles en octets</span></div>
+<pre><span class="p">$</span> <span class="g">pqc size --kem x25519 ml-kem-768</span>
+<span class="d">algo            clé publique     chiffré</span>
+x25519                  32 B        32 B
+ml-kem-768           <span class="w">1 184 B</span>     <span class="w">1 088 B</span>   <span class="k">×37 | ×34</span>
+
+<span class="p">$</span> <span class="g">pqc size --sig ed25519 ml-dsa-65</span>
+<span class="d">algo            clé publique   signature</span>
+ed25519                 32 B        64 B
+ml-dsa-65            <span class="w">1 952 B</span>     <span class="w">3 309 B</span>   <span class="k">×61 | ×52</span>
+
+<span class="p">$</span> <span class="g">pqc life --it --ot</span>
+it    3–5 ans
+ot    <span class="w">10–15 ans, parfois &gt; 20</span>   <span class="d">NIST SP 800-82r3</span>
+<span class="p">$</span> <span class="cur"></span></pre>
     </div>
   </div>
 </section>
 
 <div class="wrap">
 
-<section aria-label="En un coup d'œil" style="margin-top:44px">
-  <div class="eyebrow">En un coup d'œil</div>
-  <div class="grid g3" style="margin-top:12px">
-    <div class="card"><div class="stat">× 37</div><div class="stat-l">Une clé publique ML-KEM-768 (1 184 octets) contre X25519 (32 octets).</div></div>
-    <div class="card"><div class="stat">× 52</div><div class="stat-l">Une signature ML-DSA-65 (3 309 octets) contre Ed25519 (64 octets).</div></div>
-    <div class="card"><div class="stat">&gt; 20<small>ans</small></div><div class="stat-l">Durée de vie possible d'un système industriel, contre 3 à 5 ans en IT.</div></div>
-  </div>
-</section>
-
 <section>
-<h2 id="entrees" style="margin-top:56px">Quatre entrées</h2>
+<h2 id="entrees" style="margin-top:56px">Au programme</h2>
 <div class="grid g2" style="margin-top:14px">
-  <a class="card" href="iot.html"><h3>Objets contraints</h3><p>Tailles de clés et de signatures, liens radio, temps et mémoire sur Cortex-M4, protocoles légers, signature de firmware, attaques physiques.</p><span class="go">Ouvrir <span aria-hidden="true">→</span></span></a>
-  <a class="card" href="ot-it.html"><h3>OT vs IT</h3><p>Durée de vie, disponibilité, modèle de Purdue, protocoles industriels, priorité de l'intégrité, calendrier européen et inégalité de Mosca.</p><span class="go">Ouvrir <span aria-hidden="true">→</span></span></a>
-  <a class="card" href="iec62443.html"><h3>IEC 62443</h3><p>La série partie par partie, niveaux de sécurité, zones et conduits, cryptographie, certification et ce que la norme dit de la PQC.</p><span class="go">Ouvrir <span aria-hidden="true">→</span></span></a>
-  <a class="card" href="conversation.html"><h3>Prêt à parler</h3><p>Pitchs de 30 secondes, chiffres à connaître, questions difficiles, fiches mémo à réviser et glossaire.</p><span class="go">Ouvrir <span aria-hidden="true">→</span></span></a>
+  <a class="card" href="iot.html"><h3>Objets contraints</h3><p>Tailles de clés et de signatures, liens radio, temps et mémoire sur Cortex-M4, protocoles légers, signature de firmware, attaques physiques.</p><span class="go">Ouvrir →</span></a>
+  <a class="card" href="ot-it.html"><h3>OT vs IT</h3><p>Durée de vie, disponibilité, modèle de Purdue, protocoles industriels, priorité de l'intégrité, calendrier européen et inégalité de Mosca.</p><span class="go">Ouvrir →</span></a>
+  <a class="card" href="iec62443.html"><h3>IEC 62443</h3><p>La série partie par partie, niveaux de sécurité, zones et conduits, cryptographie, certification, et ce que la norme dit de la PQC.</p><span class="go">Ouvrir →</span></a>
+  <a class="card" href="reviser.html"><h3>Réviser</h3><p>Vingt-trois fiches mémo, tous les chiffres sur une page et un glossaire avec recherche.</p><span class="go">Ouvrir →</span></a>
 </div>
 </section>
 
 <section>
 <h2 id="outils">Les outils</h2>
-<p class="lead" style="font-size:1.05rem">Chacun tourne dans votre navigateur, sans envoi de données.</p>
+<p class="lead" style="font-size:1rem">Chacun tourne dans le navigateur, sans envoi de données.</p>
 <div class="grid g3" style="margin-top:14px">
   <a class="card" href="iot.html#outil-tailles"><h4>Explorateur de tailles</h4><p>Combien de trames radio pour un handshake post-quantique, selon l'algorithme et le lien ?</p></a>
   <a class="card" href="iot.html#calcul"><h4>Benchmarks Cortex-M4</h4><p>Durées selon la fréquence, pile selon votre budget de RAM.</p></a>
   <a class="card" href="ot-it.html#horloge"><h4>Horloge quantique</h4><p>L'inégalité de Mosca et le cycle de vie d'un équipement face aux jalons européens.</p></a>
   <a class="card" href="ot-it.html#modele-purdue"><h4>Modèle de Purdue</h4><p>Où se loge la cryptographie, niveau par niveau.</p></a>
   <a class="card" href="iec62443.html#carte"><h4>Carte de l'IEC 62443</h4><p>Les parties de la série, leur rôle et leur titre.</p></a>
-  <a class="card" href="conversation.html#fiches"><h4>Fiches mémo</h4><p>Vingt-trois questions pour vérifier ce que vous retenez.</p></a>
+  <a class="card" href="reviser.html#fiches"><h4>Fiches mémo</h4><p>Vingt-trois questions pour vérifier ce que vous retenez.</p></a>
 </div>
 </section>
 
 <section>
 <h2 id="lire">Comment lire ce site</h2>
 <div class="grid g2">
-  <div class="card"><h3>Trois niveaux de lecture</h3>
-  <p>Le bouton « Affichage » en haut de page règle le niveau :</p>
+  <div class="card"><h3>Trois niveaux</h3>
+  <p>Le bouton « Affichage », en haut de page, règle la profondeur :</p>
   <ul><li><strong>Essentiel</strong> : l'idée et les chiffres clés.</li><li><strong>Approfondi</strong> : le mécanisme et les comparaisons.</li><li><strong>Expert</strong> : détails d'implémentation et limites des sources.</li></ul></div>
-  <div class="card"><h3>Chaque affirmation indique sa source</h3>
-  <p><span class="badge b-prim">source primaire</span> texte officiel ou mesure originale lus.<br>
-  <span class="badge b-sec" style="margin-top:6px">source secondaire</span> résumé, article de vendeur ou extrait ; à recouper.<br>
-  <span class="badge b-ver" style="margin-top:6px">à vérifier</span> non confirmé : ne le répétez pas sans contrôle.</p></div>
+  <div class="card"><h3>Chaque chiffre dit d'où il vient</h3>
+  <p><span class="badge b-prim">source primaire</span> texte officiel ou mesure originale, lus.</p>
+  <p><span class="badge b-sec">source secondaire</span> résumé, article ou extrait : à recouper.</p>
+  <p><span class="badge b-ver">à vérifier</span> non confirmé : à ne pas répéter sans contrôle.</p></div>
 </div>
-<div class="note piege"><div class="nt">Ce que ce site n'est pas</div><p>Ce n'est pas une source officielle et il n'a pas de valeur juridique. Les normes IEC 62443 sont payantes : je n'ai lu aucune édition, et les formulations normatives ne sont pas citées. Chaque page se termine par la liste de ses limites.</p></div>
-</section>
-
-<section>
-<h2 id="aussi">Aussi</h2>
-<div class="grid g2">
-  <a class="card" href="ecw.html"><h4>European Cyber Week 2026</h4><p>Programme filtrable du workshop post-quantique de Rennes, 18 et 19 novembre.</p></a>
-  <a class="card" href="cifre.html"><h4>La thèse CIFRE</h4><p>Les règles du dispositif en 2026 et les étapes du montage.</p></a>
-</div>
+<div class="note piege"><div class="nt">Ce que ce site n'est pas</div><p>Ce n'est pas une source officielle et il n'a aucune valeur juridique. Les normes IEC 62443 sont payantes : je n'en ai lu aucune édition, et leurs formulations ne sont pas citées. Chaque page se termine par la liste de ses limites.</p></div>
 </section>
 
 </div>
@@ -93,20 +94,5 @@
 <script src="assets/glossary.js"></script>
 <script src="assets/site.js"></script>
 <script src="assets/tools.js"></script>
-<script>
-/* Réseau de points légèrement bruités : image d'un réseau euclidien (LWE). Décoratif. */
-(function(){
-  var s = document.getElementById('lattice'); if (!s) return;
-  var seed = 7; function r(){ seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
-  var out = '', n = 9, gap = 40, off = 20;
-  for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) {
-    var x = off + i * gap, y = off + j * gap, nx = x + (r() - .5) * 15, ny = y + (r() - .5) * 15;
-    out += '<circle cx="' + x + '" cy="' + y + '" r="2.2" fill="currentColor" opacity=".35"/>';
-    out += '<line x1="' + x + '" y1="' + y + '" x2="' + nx + '" y2="' + ny + '" stroke="currentColor" stroke-width="1" opacity=".35"/>';
-    out += '<circle cx="' + nx + '" cy="' + ny + '" r="3.4" fill="currentColor" opacity=".8"/>';
-  }
-  s.innerHTML = out;
-})();
-</script>
 </body>
 </html>

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Espace privé – PQC·LAB</title>
+<meta name="theme-color" content="#060b0e">
+<script>(function(){var d=document.documentElement,t='dark';try{t=localStorage.getItem('pqc-theme')||'dark';}catch(e){}if(t==='light'||t==='dark')d.setAttribute('data-theme',t);})();</script>
+<link rel="stylesheet" href="assets/site.css">
+<style>
+ul.ck{list-style:none;padding:0;margin:10px 0 0}
+ul.ck li{margin:8px 0}
+ul.ck label{display:flex;gap:10px;align-items:flex-start;cursor:pointer;line-height:1.4}
+ul.ck input{margin-top:3px;width:18px;height:18px;accent-color:var(--accent);flex:none}
+ul.ck input:checked+*,ul.ck label:has(input:checked){color:var(--fg-3);text-decoration:line-through}
+</style>
+</head>
+<body data-page="priv">
+<a class="skip" href="#main">Aller au contenu</a>
+<div id="site-header"></div>
+<div id="site-sheet"></div>
+
+<main id="main">
+<div class="wrap">
+
+  <div class="login card" id="gate">
+    <div class="eyebrow">accès restreint</div>
+    <h1 style="font-size:1.6rem;margin-top:10px">Espace privé</h1>
+    <p style="color:var(--fg-2);margin:10px 0 0">Notes personnelles. Saisissez votre identifiant et votre code.</p>
+    <form id="login-form" autocomplete="off">
+      <div><label for="uid">Identifiant</label><input id="uid" name="uid" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
+      <div><label for="pin">Code PIN</label><input id="pin" name="pin" type="password" inputmode="numeric" autocomplete="current-password" required></div>
+      <p class="err" id="err" role="alert"></p>
+      <button class="btn" type="submit">Ouvrir</button>
+    </form>
+  </div>
+
+  <div id="vault" hidden>
+    <header class="pagehead" style="padding-bottom:0">
+      <div class="eyebrow">espace privé</div>
+      <h1>Préparer le forum</h1>
+      <div class="lock-bar"><p class="lead" style="margin:0;font-size:1rem">Check-list, programme, questions à poser, réponses d'expert et règles de la thèse CIFRE.</p><button type="button" class="btn sec" id="lock">Verrouiller</button></div>
+    </header>
+    <article class="wide" id="vault-content" style="max-width:860px"></article>
+  </div>
+
+</div>
+</main>
+
+<div id="site-footer"></div>
+<nav id="site-tabbar"></nav>
+<script src="assets/glossary.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tools.js"></script>
+<script src="assets/vault.js"></script>
+</body>
+</html>

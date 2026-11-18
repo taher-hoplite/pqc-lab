@@ -345,5 +345,6 @@
       try { f(); } catch (e) { if (window.console) console.error('PQC Lab, outil en échec :', f.name, e); }
     });
   }
+  window.PQC_TOOLS = { init: init };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
