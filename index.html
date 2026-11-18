@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PQC Lab – notes ECW 2026</title>
+<meta name="description" content="Notes de préparation sur la cryptographie post-quantique : European Cyber Week 2026, concepts, IoT/OT, thèse CIFRE.">
+<style>
+:root{
+  --bg:#fafaf7; --fg:#1d1d1b; --muted:#6b6b66; --card:#ffffff; --line:#e4e2da;
+  --accent:#0b6b5c; --accent-bg:#e3f2ee; --warn:#8a5a00; --warn-bg:#fff4dc;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121614; --fg:#ecefec; --muted:#9aa49e; --card:#1a201d; --line:#2a322e;
+    --accent:#5fd0b8; --accent-bg:#17302a; --warn:#f0c068; --warn-bg:#2e2410;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-text-size-adjust:100%}
+main,header,footer,nav{max-width:760px;margin:0 auto;padding-left:16px;padding-right:16px}
+header{padding-top:28px}
+h1{font-size:1.7rem;line-height:1.2;margin:0 0 6px}
+h2{font-size:1.25rem;margin:34px 0 10px;padding-top:6px;border-top:1px solid var(--line)}
+h3{font-size:1.02rem;margin:20px 0 6px}
+p,li{overflow-wrap:anywhere}
+.sub{color:var(--muted);margin:0}
+nav{position:sticky;top:0;background:var(--bg);padding-top:10px;padding-bottom:10px;
+  border-bottom:1px solid var(--line);z-index:5;display:flex;gap:8px;overflow-x:auto;white-space:nowrap}
+nav a{flex:0 0 auto;text-decoration:none;color:var(--accent);background:var(--accent-bg);
+  padding:6px 12px;border-radius:999px;font-size:.9rem}
+.note{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:.92rem;margin:14px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0}
+table{width:100%;border-collapse:collapse;font-size:.92rem;margin:10px 0}
+th,td{text-align:left;vertical-align:top;padding:8px 6px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tag{display:inline-block;font-size:.75rem;padding:1px 8px;border-radius:999px;background:var(--accent-bg);color:var(--accent);margin-right:4px}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 14px;margin:10px 0}
+summary{cursor:pointer;padding:10px 0;font-weight:600}
+a{color:var(--accent)}
+ul{padding-left:20px}
+footer{color:var(--muted);font-size:.85rem;padding-top:30px;padding-bottom:50px}
+code{background:var(--accent-bg);padding:1px 5px;border-radius:5px;font-size:.9em}
+</style>
+</head>
+<body>
+<header>
+  <h1>PQC Lab</h1>
+  <p class="sub">Notes sur la cryptographie post-quantique · European Cyber Week 2026 · Rennes</p>
+  <div class="note">Notes personnelles de préparation, <strong>non officielles</strong>. Dernière mise à jour : 18 novembre 2026. Ce qui n'est pas confirmé par une source primaire est signalé « à vérifier ».</div>
+</header>
+
+<nav aria-label="Sections">
+  <a href="#ecw">ECW</a>
+  <a href="#concepts">Concepts</a>
+  <a href="#standards">Standards</a>
+  <a href="#iot">IoT / OT</a>
+  <a href="#cifre">CIFRE</a>
+  <a href="#sources">Sources</a>
+</nav>
+
+<main>
+
+<h2 id="ecw">1. European Cyber Week 2026</h2>
+<div class="card">
+  <p><strong>16–19 novembre 2026</strong>, Couvent des Jacobins, 20 place Sainte-Anne, Rennes (métro A/B, Sainte-Anne). Gratuit sur inscription : <a href="https://www.european-cyber-week.eu/inscription">european-cyber-week.eu</a>.</p>
+  <p><strong>Workshop PQC : mercredi 18 et jeudi 19 novembre, 9h–18h</strong>, organisé par la DGA avec CREACH LABS, le soutien de l'ANSSI, de l'IRISA et de l'IRMAR. Programme provisoire (horaires susceptibles de changer) : <a href="https://lercier.pages.math.cnrs.fr/pqc-workshop-2026/index.html">page du workshop</a>.</p>
+  <p><strong>Vendredi 20 novembre, 9h30–15h15</strong> : journée post-quantique du séminaire de cryptographie de Rennes, campus de Beaulieu, amphi E, bât. 02A (présentiel et visio). <a href="https://www.creachlabs.fr/en/seminars-keeping-date-latest-research/cryptography-seminar/post-quantum-day-cryptography-seminar">Infos</a>.</p>
+</div>
+
+<h3>Mercredi 18</h3>
+<div class="tw"><table>
+<tr><th>Heure</th><th>Intervention</th></tr>
+<tr><td>9h15</td><td>ANSSI : feuille de route PQC et stratégie de certification des produits</td></tr>
+<tr><td>10h00</td><td>DGA : développements PQC</td></tr>
+<tr><td>11h00</td><td>Point sur l'appel NIST « additional signatures »</td></tr>
+<tr><td>13h30</td><td>SQIsign : dernières avancées</td></tr>
+<tr><td>14h10</td><td>Hybridation de signatures : éléments techniques (ANSSI)</td></tr>
+<tr><td>14h50</td><td>Vérification formelle d'implémentations PQC (PQShield)</td></tr>
+<tr><td>16h00</td><td>Cryptanalyse du schéma de signature HAWK</td></tr>
+<tr><td>16h30</td><td>Intégration des algorithmes PQ dans les protocoles de communication (NCC Group)</td></tr>
+<tr><td>17h00</td><td>Étude amont NYMPHEAS (Secure-IC)</td></tr>
+</table></div>
+
+<h3>Jeudi 19</h3>
+<div class="tw"><table>
+<tr><th>Heure</th><th>Intervention</th></tr>
+<tr><td>9h00</td><td>Posters des jeunes chercheurs (ouverture, puis discussions)</td></tr>
+<tr><td>11h00</td><td>Migration PQC aux Pays-Bas : stratégies et retours d'expérience (TNO)</td></tr>
+<tr><td>13h30</td><td>Sécuriser demain avec la PQC (NXP)</td></tr>
+<tr><td>14h10</td><td>Protéger la PQC en environnement hostile, white-box, FrodoKEM (IDEMIA)</td></tr>
+<tr><td>14h50</td><td>Implémentations embarquées sûres de ML-KEM et ML-DSA (CryptoExperts)</td></tr>
+<tr><td>16h00</td><td>Credentials anonymes post-quantiques (Orange Labs)</td></tr>
+<tr><td>16h30</td><td>Le protocole Zama dans un monde post-quantique</td></tr>
+<tr><td>17h00</td><td>DAKE : échange de clés économe en bande passante (Thales)</td></tr>
+<tr><td>17h30</td><td>Triple Ratchet : protocole Signal hybride (PQShield)</td></tr>
+</table></div>
+
+<details>
+<summary>Thèmes des posters (jeudi)</summary>
+<ul>
+  <li>Cosets cyclotomiques et problèmes de « hidden shift » généralisés</li>
+  <li>LSTM homomorphe pratique par bootstrapping programmable</li>
+  <li>Réduction interne tronquée et mise au carré vectorisée dans le PMN</li>
+  <li>Analyse par canaux auxiliaires d'arbres de graines GGM corrélées : application à MQOM</li>
+  <li>Masquage de ML-DSA</li>
+  <li>Signatures aveugles compactes concurremment sûres à partir d'hypothèses sur les réseaux</li>
+  <li>Cadre pour l'échange de clés hybride PQ/classique</li>
+  <li>Attaques différentielles tronquées quantiques</li>
+  <li>Matériel optimisé pour signatures à base de hash (LMS, XMSS, SLH-DSA)</li>
+  <li>Résilience aux fuites bruitées sans perte liée à la taille du corps</li>
+  <li>Schéma de chiffrement MinRank Gabidulin</li>
+  <li>Architecture commune ML-KEM / ML-DSA / FN-DSA</li>
+</ul>
+<p class="sub"><a href="https://www.creachlabs.fr/sites/default/files/public/media/document/2026-11/pqc-2026-accepted-posters.pdf">Liste officielle des posters (PDF)</a></p>
+</details>
+
+<h2 id="concepts">2. Concepts essentiels</h2>
+
+<h3>La menace</h3>
+<ul>
+  <li><strong>Shor</strong> : un ordinateur quantique assez puissant casse RSA, Diffie-Hellman et les courbes elliptiques. Toute la cryptographie asymétrique actuelle est concernée.</li>
+  <li><strong>Grover</strong> : accélération quadratique de la recherche exhaustive. On double les tailles de clés symétriques (AES-256) et de hash, sans catastrophe.</li>
+  <li><strong>« Harvest Now, Decrypt Later »</strong> : on stocke aujourd'hui du trafic chiffré pour le déchiffrer plus tard. Urgent pour la <em>confidentialité</em> (échange de clés). Les signatures sont moins pressantes mais plus difficiles à migrer (PKI, firmware, secure boot).</li>
+  <li><strong>PQC ≠ QKD</strong> : la PQC est de la cryptographie classique résistante au quantique, déployable en logiciel. La QKD (distribution quantique de clés) exige du matériel dédié.</li>
+</ul>
+
+<h3>Les familles mathématiques</h3>
+<div class="tw"><table>
+<tr><th>Famille</th><th>Problème dur</th><th>Exemples</th></tr>
+<tr><td>Réseaux euclidiens</td><td>LWE, Module-LWE, SIS</td><td>ML-KEM, ML-DSA, FN-DSA, FrodoKEM</td></tr>
+<tr><td>Codes correcteurs</td><td>Décodage de syndrome</td><td>HQC, Classic McEliece, BIKE</td></tr>
+<tr><td>Fonctions de hachage</td><td>Résistance du hash</td><td>SLH-DSA, LMS, XMSS</td></tr>
+<tr><td>Multivarié</td><td>MQ, MinRank</td><td>UOV, MQOM</td></tr>
+<tr><td>Isogénies</td><td>Isogénies de courbes elliptiques</td><td>SQIsign</td></tr>
+</table></div>
+
+<h3>Notions transverses</h3>
+<ul>
+  <li><strong>Hybridation</strong> : combiner un algorithme classique et un algorithme PQ pour ne pas dépendre d'un seul pari (ex. X25519 + ML-KEM dans TLS). L'ANSSI la recommande fortement, sans obligation réglementaire à ce jour, sauf pour les signatures à base de hash où elle ne la recommande pas systématiquement (d'après la FAQ ANSSI, via résumé de recherche web ; à vérifier sur cyber.gouv.fr).</li>
+  <li><strong>Canaux auxiliaires</strong> : attaques par temps de calcul, consommation, rayonnement ou fautes contre une implémentation. Contre-mesure type : le <em>masquage</em>.</li>
+  <li><strong>Cryptanalyse</strong> : évaluer la sécurité réelle des paramètres (estimateurs de sécurité, attaques lattice).</li>
+  <li><strong>Crypto-agilité</strong> : pouvoir changer d'algorithme sans refonte du système.</li>
+  <li><strong>Inventaire cryptographique (CBOM)</strong> : savoir où et comment la cryptographie est utilisée. Première étape de toute migration.</li>
+  <li><strong>Vérification formelle</strong> : preuve de propriétés d'implémentations ou de protocoles (Tamarin, ProVerif, EasyCrypt).</li>
+</ul>
+
+<h2 id="standards">3. Standards et calendrier</h2>
+<div class="tw"><table>
+<tr><th>Standard</th><th>Rôle</th><th>État</th></tr>
+<tr><td>FIPS 203, ML-KEM</td><td>Encapsulation de clé (ex-Kyber)</td><td>Publié (2024)</td></tr>
+<tr><td>FIPS 204, ML-DSA</td><td>Signature (ex-Dilithium)</td><td>Publié (2024)</td></tr>
+<tr><td>FIPS 205, SLH-DSA</td><td>Signature à base de hash (ex-SPHINCS+)</td><td>Publié (2024)</td></tr>
+<tr><td>FIPS 206, FN-DSA</td><td>Signature compacte (ex-Falcon)</td><td>Projet ; version finale attendue fin 2026 / début 2027 <span class="tag">à vérifier</span></td></tr>
+<tr><td>FIPS 207, HQC</td><td>KEM basé codes (secours de ML-KEM)</td><td>Sélectionné en mars 2025 ; version finale visée en 2027 <span class="tag">à vérifier</span></td></tr>
+</table></div>
+<p>L'appel NIST « additional signatures » cherche des signatures plus courtes ou plus variées ; SQIsign, MQOM et HAWK sont des candidats évoqués cette semaine.</p>
+
+<h3>Feuille de route européenne (juin 2025)</h3>
+<ul>
+  <li><strong>Fin 2026</strong> : stratégies nationales, inventaires, premiers pilotes.</li>
+  <li><strong>Fin 2030</strong> : migration des systèmes à haut risque (infrastructures critiques).</li>
+  <li><strong>Fin 2035</strong> : migration des systèmes à risque moyen ou faible.</li>
+</ul>
+<p class="sub">Confirmé par plusieurs sources secondaires, pas par le texte original de la Commission. Des articles rapportent aussi des dates ANSSI (2027, 2030), non confirmées dans un texte officiel.</p>
+
+<h2 id="iot">4. IoT et OT</h2>
+<h3>Pourquoi l'IoT est difficile pour la PQC</h3>
+<p>Un objet connecté a peu de mémoire, peu de calcul, une batterie limitée et un lien radio à faible débit. La PQC coûte plus cher sur tous ces points.</p>
+<div class="tw"><table>
+<tr><th></th><th>Classique</th><th>Post-quantique</th></tr>
+<tr><td>Échange de clés</td><td>X25519 : clé publique 32 octets</td><td>ML-KEM-768 : clé publique 1 184 o, chiffré 1 088 o</td></tr>
+<tr><td>Signature</td><td>Ed25519 : signature 64 o, clé publique 32 o</td><td>ML-DSA-65 : signature 3 309 o, clé publique 1 952 o</td></tr>
+</table></div>
+<p class="sub">Tailles tirées des tables de paramètres FIPS 203/204 ; à recouper avec les documents NIST.</p>
+<p>Conséquences : messages qui ne tiennent plus dans une trame radio, certificats plus gros, plus de RAM, plus d'énergie. D'où l'intérêt des protocoles légers : <strong>EDHOC</strong> (RFC 9528) et le groupe IETF <strong>LAKE</strong>, qui l'adapte à la PQC.</p>
+
+<h3>IT et OT</h3>
+<div class="tw"><table>
+<tr><th>Point</th><th>IT</th><th>OT (systèmes industriels)</th></tr>
+<tr><td>Durée de vie</td><td>3 à 5 ans</td><td>15 à 30 ans</td></tr>
+<tr><td>Mises à jour</td><td>Fréquentes</td><td>Rares, souvent contraintes</td></tr>
+<tr><td>Priorité</td><td>Confidentialité</td><td>Disponibilité et sûreté</td></tr>
+<tr><td>Protocoles</td><td>TLS, SSH, HTTPS</td><td>Modbus, DNP3, OPC UA, propriétaires</td></tr>
+</table></div>
+<p>Un équipement posé aujourd'hui sera encore là en 2040 : il faut prévoir la crypto-agilité et inventorier ce qui existe. Des sources de vendeurs citent l'IEC 62443, NIS2 et le CRA comme moteurs réglementaires <span class="tag">à vérifier dans les textes</span>.</p>
+
+<h2 id="cifre">5. La thèse CIFRE : règles générales</h2>
+<p>Source : plaquette ANRT de mars 2026 et lettre de cadrage universitaire 2026.</p>
+<ul>
+  <li>Cadre : décret n° 2025-1398 du 29 décembre 2025, pour les demandes déposées depuis le 1er janvier 2026.</li>
+  <li>L'entreprise embauche le doctorant en <strong>CDI ou CDD de 36 mois</strong>, à temps plein, avec un salaire brut annuel d'au moins <strong>27 600 €</strong> (valeur 2026). L'ANRT verse une subvention de <strong>14 000 € par an pendant 3 ans</strong>.</li>
+  <li>Le candidat doit être titulaire du grade de master, ne pas être inscrit en doctorat depuis plus de 9 mois et <strong>ne pas être embauché chez l'employeur depuis plus de 9 mois</strong> à la date de dépôt du dossier (hors stage, apprentissage, alternance).</li>
+  <li>Trois acteurs : l'entreprise, le laboratoire académique (directeur de thèse, école doctorale) et le doctorant. Un <strong>contrat de collaboration</strong> (propriété intellectuelle, confidentialité) doit être signé avant le démarrage de la thèse.</li>
+  <li>Le dossier est déposé en ligne par l'entreprise. L'ANRT décide environ 2 à 3 mois après le dépôt.</li>
+  <li>Contact : cifre@anrt.asso.fr.</li>
+</ul>
+
+<h2 id="sources">6. Sources</h2>
+<ul>
+  <li><a href="https://lercier.pages.math.cnrs.fr/pqc-workshop-2026/index.html">Workshop PQC 2026</a></li>
+  <li><a href="https://cybersecurity-centre.europa.eu/events/european-cyber-week-16-19-november-2026-rennes-france-2026-11-16_bg">European Cyber Week 2026</a></li>
+  <li><a href="https://www.anrt.asso.fr/sites/default/files/2026-03/Cifre_2026.pdf">Plaquette CIFRE ANRT, mars 2026</a></li>
+  <li><a href="https://cyber.gouv.fr/enjeux-technologiques/cryptographie-post-quantique/faq-pqc/">FAQ PQC de l'ANSSI</a></li>
+  <li><a href="https://csrc.nist.gov/projects/post-quantum-cryptography">NIST, projet PQC</a></li>
+  <li><a href="https://arxiv.org/pdf/2401.17538">Survey : PQC pour l'IoT</a></li>
+  <li><a href="https://arxiv.org/pdf/2402.00790">Survey : du pré-quantique au post-quantique pour l'IoT</a></li>
+  <li><a href="https://www.rand.org/pubs/research_reports/RRA2427-1.html">RAND : vulnérabilités quantiques des systèmes de contrôle industriels</a></li>
+</ul>
+
+</main>
+<footer>
+  <p>PQC Lab · notes personnelles. Les informations peuvent être incomplètes ou dépassées ; vérifie les sources officielles avant de t'y fier.</p>
+</footer>
+</body>
+</html>
