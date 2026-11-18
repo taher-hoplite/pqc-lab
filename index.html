@@ -3,559 +3,109 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>PQC Lab – notes ECW 2026</title>
-<meta name="description" content="Notes sur la cryptographie post-quantique : programme de l'European Cyber Week 2026, concepts, standards, IoT/OT, règles de la thèse CIFRE.">
-<meta name="theme-color" content="#f5f4ef">
-<script>
-/* Applique le thème enregistré avant le premier affichage (évite le flash). */
-(function(){try{var t=localStorage.getItem('pqc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
-</script>
-<style>
-:root{
-  color-scheme:light;
-  --bg:#f5f4ef; --surface:#ffffff; --surface-2:#eeece4; --fg:#1a1f1c; --muted:#5b645e; --line:#dcd9ce;
-  --accent:#0a6a5b; --accent-soft:#dcefe9; --accent-fg:#ffffff;
-  --warn:#744c00; --warn-bg:#fff1d2;
-  --policy-bg:#e2e9f8; --policy-fg:#25508f;
-  --crypt-bg:#ece4f7; --crypt-fg:#5d3a91;
-  --impl-bg:#fbe9d8; --impl-fg:#8a4a0b;
-  --proto-bg:#d9f0ec; --proto-fg:#0a6a5b;
-  --adv-bg:#f8e1ea; --adv-fg:#9a2f58;
-  --other-bg:#e9e8e2; --other-fg:#55595a;
-  --shadow:0 1px 2px rgba(20,25,22,.06),0 4px 14px rgba(20,25,22,.05);
-}
-:root[data-theme="dark"]{
-  color-scheme:dark;
-  --bg:#0e1311; --surface:#161c19; --surface-2:#1e2723; --fg:#e8eee9; --muted:#9aa8a1; --line:#28322d;
-  --accent:#5fd2b9; --accent-soft:#16312b; --accent-fg:#06201a;
-  --warn:#f0c46c; --warn-bg:#2b2310;
-  --policy-bg:#1b2a47; --policy-fg:#9dbcf2;
-  --crypt-bg:#2a2140; --crypt-fg:#c6aef0;
-  --impl-bg:#3a2612; --impl-fg:#f0b87c;
-  --proto-bg:#12332d; --proto-fg:#7fdcc8;
-  --adv-bg:#3d1a29; --adv-fg:#f0a3c1;
-  --other-bg:#232a27; --other-fg:#aab3ae;
-  --shadow:none;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    color-scheme:dark;
-    --bg:#0e1311; --surface:#161c19; --surface-2:#1e2723; --fg:#e8eee9; --muted:#9aa8a1; --line:#28322d;
-    --accent:#5fd2b9; --accent-soft:#16312b; --accent-fg:#06201a;
-    --warn:#f0c46c; --warn-bg:#2b2310;
-    --policy-bg:#1b2a47; --policy-fg:#9dbcf2;
-    --crypt-bg:#2a2140; --crypt-fg:#c6aef0;
-    --impl-bg:#3a2612; --impl-fg:#f0b87c;
-    --proto-bg:#12332d; --proto-fg:#7fdcc8;
-    --adv-bg:#3d1a29; --adv-fg:#f0a3c1;
-    --other-bg:#232a27; --other-fg:#aab3ae;
-    --shadow:none;
-  }
-}
-
-*{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:70px}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
-body{margin:0;background:var(--bg);color:var(--fg);
-  font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
-  -webkit-text-size-adjust:100%;
-  padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
-.wrap{max-width:780px;margin:0 auto;padding:0 16px}
-a{color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
-p,li,td,th,summary{overflow-wrap:anywhere}
-h1,h2,h3{line-height:1.2;margin:0}
-h2{font-size:1.35rem;margin:44px 0 6px;letter-spacing:-.01em}
-h3{font-size:1.02rem;margin:22px 0 8px}
-.lead{color:var(--muted);margin:0 0 14px}
-.eyebrow{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
-
-/* En-tête */
-.top{padding-top:22px;padding-bottom:18px}
-.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
-.brand{font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
-.logo{width:26px;height:26px;border-radius:8px;background:var(--accent);color:var(--accent-fg);
-  display:grid;place-items:center;font-size:.8rem;font-weight:800}
-.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px}
-.seg button{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:.82rem;
-  padding:5px 11px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;min-height:30px}
-.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:var(--shadow);font-weight:600}
-.seg svg{width:14px;height:14px;flex:none}
-h1{font-size:clamp(1.9rem,6vw,2.6rem);letter-spacing:-.03em;margin:6px 0 10px}
-.updated{font-size:.85rem;color:var(--muted)}
-.callout{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:10px 14px;font-size:.9rem;margin:16px 0 0}
-
-/* Navigation */
-.nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.nav .wrap{display:flex;gap:6px;overflow-x:auto;padding-top:9px;padding-bottom:9px;scrollbar-width:none}
-.nav .wrap::-webkit-scrollbar{display:none}
-.nav a{flex:none;text-decoration:none;color:var(--muted);font-size:.9rem;padding:6px 13px;border-radius:999px;border:1px solid transparent}
-.nav a[aria-current="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
-
-/* En 30 secondes */
-.tl{display:grid;gap:10px;margin:16px 0 0}
-@media (min-width:640px){.tl{grid-template-columns:repeat(3,1fr)}}
-.tl .card{margin:0}
-.big{font-size:1.5rem;font-weight:800;color:var(--accent);line-height:1}
-
-/* Cartes */
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0;box-shadow:var(--shadow)}
-.card h3{margin:0 0 6px}
-.card p{margin:6px 0}
-.grid{display:grid;gap:10px}
-@media (min-width:640px){.grid.two{grid-template-columns:1fr 1fr}}
-
-/* Chips */
-.chip{display:inline-block;font-size:.72rem;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
-.c-policy{background:var(--policy-bg);color:var(--policy-fg)}
-.c-crypt{background:var(--crypt-bg);color:var(--crypt-fg)}
-.c-impl{background:var(--impl-bg);color:var(--impl-fg)}
-.c-proto{background:var(--proto-bg);color:var(--proto-fg)}
-.c-adv{background:var(--adv-bg);color:var(--adv-fg)}
-.c-other{background:var(--other-bg);color:var(--other-fg)}
-.badge{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
-.badge.warn{background:var(--warn-bg);color:var(--warn)}
-
-/* Programme */
-.tabs{display:flex;gap:8px;margin:14px 0 10px}
-.tabs button,.filters button{appearance:none;font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--surface);
-  color:var(--fg);border-radius:999px;padding:7px 15px;min-height:38px;font-size:.92rem}
-.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:700}
-.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;margin-bottom:6px}
-.filters::-webkit-scrollbar{display:none}
-.filters button{flex:none;padding:5px 12px;min-height:32px;font-size:.84rem;color:var(--muted)}
-.filters button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
-.day[hidden]{display:none}
-.slots{list-style:none;margin:0;padding:0;position:relative}
-.slot{display:grid;grid-template-columns:54px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
-.slot[hidden]{display:none}
-.slot time{font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
-.slot .t{font-weight:600}
-.slot .w{display:block;color:var(--muted);font-size:.88rem;margin-top:2px}
-.slot .chip{margin-top:5px}
-.slot.now{background:var(--accent-soft);border-radius:10px;padding-left:8px;padding-right:8px;margin:0 -8px}
-.empty{color:var(--muted);font-size:.9rem;display:none}
-
-/* Tableaux */
-.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:14px;background:var(--surface);margin:12px 0}
-table{width:100%;border-collapse:collapse;font-size:.92rem;min-width:520px}
-th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
-tr:last-child td{border-bottom:0}
-th{color:var(--muted);font-weight:600;font-size:.82rem;background:var(--surface-2)}
-td:first-child{font-weight:600}
-
-/* Détails repliables */
-details{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:2px 16px;margin:10px 0}
-summary{cursor:pointer;padding:12px 0;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:10px}
-summary::-webkit-details-marker{display:none}
-summary::after{content:"+";color:var(--accent);font-weight:700}
-details[open] summary::after{content:"–"}
-details ul{margin:0 0 12px}
-ul{padding-left:20px;margin:8px 0}
-li{margin:5px 0}
-.sub{color:var(--muted);font-size:.88rem}
-code{background:var(--surface-2);padding:1px 6px;border-radius:6px;font-size:.9em}
-
-footer{color:var(--muted);font-size:.85rem;padding:34px 0 60px;border-top:1px solid var(--line);margin-top:44px}
-.totop{position:fixed;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));
-  width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--fg);
-  box-shadow:var(--shadow);cursor:pointer;display:none;align-items:center;justify-content:center;font-size:1.1rem}
-.totop.show{display:flex}
-</style>
+<title>PQC Lab – le post-quantique, là où il devient difficile</title>
+<meta name="description" content="Cryptographie post-quantique pour objets connectés et systèmes industriels : tailles et benchmarks, protocoles, OT vs IT, IEC 62443, outils interactifs et fiches pour préparer une conversation d'expert.">
+<meta name="theme-color" content="#f7f6f2">
+<script>(function(){try{var t=localStorage.getItem('pqc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<link rel="stylesheet" href="assets/site.css">
 </head>
-<body>
+<body data-page="home">
+<a class="skip" href="#main">Aller au contenu</a>
+<div id="site-header"></div>
+<div id="site-sheet"></div>
 
-<header class="top wrap">
-  <div class="bar">
-    <div class="brand"><span class="logo" aria-hidden="true">PQ</span> PQC Lab</div>
-    <div class="seg" role="group" aria-label="Thème d'affichage">
-      <button type="button" data-theme-btn="auto" aria-pressed="true" title="Suivre le système">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span>Auto</span>
-      </button>
-      <button type="button" data-theme-btn="light" aria-pressed="false" title="Thème clair">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span>Clair</span>
-      </button>
-      <button type="button" data-theme-btn="dark" aria-pressed="false" title="Thème sombre">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span>Sombre</span>
-      </button>
+<main id="main">
+<section class="hero">
+  <svg class="lattice" id="lattice" viewBox="0 0 400 400" aria-hidden="true"></svg>
+  <div class="hero-in">
+    <div class="eyebrow">Cryptographie post-quantique · IoT · OT</div>
+    <h1>Le post-quantique, là où il devient difficile</h1>
+    <p class="lead">Objets connectés et systèmes industriels : les chiffres, les protocoles et les normes, avec leurs sources, des outils pour les manipuler et de quoi préparer une conversation d'expert.</p>
+    <div class="cta">
+      <a class="btn" href="iot.html">Commencer par les objets contraints <span aria-hidden="true">→</span></a>
+      <a class="btn sec" href="conversation.html">Préparer une conversation</a>
     </div>
   </div>
-  <div class="eyebrow">European Cyber Week · Rennes · 16–19 nov. 2026</div>
-  <h1>Cryptographie post-quantique : le point en une page</h1>
-  <p class="lead">Programme du workshop, concepts, standards, IoT/OT et règles de la thèse CIFRE. Fait pour être lu sur un téléphone.</p>
-  <div class="updated">Mis à jour le 18 novembre 2026</div>
-  <div class="callout">Notes personnelles, <strong>non officielles</strong>. Ce qui n'est pas confirmé par une source primaire est marqué « à vérifier ».</div>
-</header>
+</section>
 
-<nav class="nav" aria-label="Sections">
-  <div class="wrap">
-    <a href="#ecw">ECW</a>
-    <a href="#concepts">Concepts</a>
-    <a href="#standards">Standards</a>
-    <a href="#iot">IoT / OT</a>
-    <a href="#cifre">CIFRE</a>
-    <a href="#sources">Sources</a>
-  </div>
-</nav>
+<div class="wrap">
 
-<main class="wrap">
-
-<section id="resume" aria-label="En 30 secondes">
-  <h2 style="margin-top:28px">En 30 secondes</h2>
-  <div class="tl">
-    <div class="card"><div class="big">Shor</div><p class="sub">Un ordinateur quantique assez puissant casse RSA, Diffie-Hellman et les courbes elliptiques.</p></div>
-    <div class="card"><div class="big">HNDL</div><p class="sub">On stocke du trafic chiffré aujourd'hui pour le déchiffrer plus tard : l'échange de clés est le plus urgent.</p></div>
-    <div class="card"><div class="big">2030</div><p class="sub">Jalon européen : systèmes à haut risque migrés d'ici fin 2030, le reste d'ici fin 2035.</p></div>
+<section aria-label="En un coup d'œil" style="margin-top:44px">
+  <div class="eyebrow">En un coup d'œil</div>
+  <div class="grid g3" style="margin-top:12px">
+    <div class="card"><div class="stat">× 37</div><div class="stat-l">Une clé publique ML-KEM-768 (1 184 octets) contre X25519 (32 octets).</div></div>
+    <div class="card"><div class="stat">× 52</div><div class="stat-l">Une signature ML-DSA-65 (3 309 octets) contre Ed25519 (64 octets).</div></div>
+    <div class="card"><div class="stat">&gt; 20<small>ans</small></div><div class="stat-l">Durée de vie possible d'un système industriel, contre 3 à 5 ans en IT.</div></div>
   </div>
 </section>
 
-<!-- ECW -->
-<section id="ecw">
-  <h2>1. European Cyber Week 2026</h2>
-  <p class="lead">Workshop PQC les 18 et 19 novembre : programme résumé et filtrable par thème.</p>
-
-  <div class="grid two">
-    <div class="card">
-      <h3>Lieu et accès</h3>
-      <p>Couvent des Jacobins, 20 place Sainte-Anne, Rennes. Métro A/B, station Sainte-Anne.</p>
-      <p><a href="https://www.european-cyber-week.eu/inscription">Inscription gratuite</a> sur le site de l'ECW.</p>
-    </div>
-    <div class="card">
-      <h3>Organisation</h3>
-      <p>DGA avec CREACH LABS, soutien de l'ANSSI, de l'IRISA et de l'IRMAR. Programme provisoire : horaires susceptibles de changer.</p>
-      <p><a href="https://lercier.pages.math.cnrs.fr/pqc-workshop-2026/index.html">Page du workshop</a></p>
-    </div>
-  </div>
-  <div class="card">
-    <h3>Vendredi 20 novembre, 9h30–15h15</h3>
-    <p>Journée post-quantique du séminaire de cryptographie de Rennes, campus de Beaulieu, amphi E, bât. 02A. Présentiel et visio. <a href="https://www.creachlabs.fr/en/seminars-keeping-date-latest-research/cryptography-seminar/post-quantum-day-cryptography-seminar">Infos</a></p>
-  </div>
-
-  <h3>Programme, jour par jour</h3>
-  <div class="tabs" role="tablist" aria-label="Jour">
-    <button type="button" role="tab" id="tab-wed" aria-selected="true" aria-controls="day-wed">Mercredi 18</button>
-    <button type="button" role="tab" id="tab-thu" aria-selected="false" aria-controls="day-thu">Jeudi 19</button>
-  </div>
-  <div class="filters" role="group" aria-label="Filtrer par thème">
-    <button type="button" data-f="all" aria-pressed="true">Tout</button>
-    <button type="button" data-f="policy" aria-pressed="false">Politique</button>
-    <button type="button" data-f="crypt" aria-pressed="false">Cryptanalyse</button>
-    <button type="button" data-f="impl" aria-pressed="false">Implémentation</button>
-    <button type="button" data-f="proto" aria-pressed="false">Protocoles</button>
-    <button type="button" data-f="adv" aria-pressed="false">Crypto avancée</button>
-  </div>
-
-  <div class="day" id="day-wed" role="tabpanel" aria-labelledby="tab-wed" data-date="2026-11-18">
-    <ul class="slots">
-      <li class="slot" data-cat="policy" data-start="9:15" data-end="10:00"><time>9h15</time><div><span class="t">Feuille de route PQC et stratégie de certification des produits</span><span class="w">ANSSI</span><span class="chip c-policy">Politique</span></div></li>
-      <li class="slot" data-cat="policy" data-start="10:00" data-end="10:30"><time>10h00</time><div><span class="t">Développements PQC à la DGA</span><span class="w">DGA</span><span class="chip c-policy">Politique</span></div></li>
-      <li class="slot" data-cat="crypt" data-start="11:00" data-end="12:00"><time>11h00</time><div><span class="t">Point sur l'appel NIST « additional signatures »</span><span class="w">Ancien associé NIST</span><span class="chip c-crypt">Cryptanalyse</span></div></li>
-      <li class="slot" data-cat="crypt" data-start="13:30" data-end="14:10"><time>13h30</time><div><span class="t">SQIsign : dernières avancées</span><span class="w">DGA MI – IRMAR</span><span class="chip c-crypt">Cryptanalyse</span></div></li>
-      <li class="slot" data-cat="proto" data-start="14:10" data-end="14:50"><time>14h10</time><div><span class="t">Hybridation de signatures : éléments techniques</span><span class="w">ANSSI</span><span class="chip c-proto">Protocoles</span></div></li>
-      <li class="slot" data-cat="impl" data-start="14:50" data-end="15:30"><time>14h50</time><div><span class="t">Vérification formelle d'implémentations PQC</span><span class="w">PQShield</span><span class="chip c-impl">Implémentation</span></div></li>
-      <li class="slot" data-cat="crypt" data-start="16:00" data-end="16:30"><time>16h00</time><div><span class="t">Cryptanalyse du schéma de signature HAWK</span><span class="w">CNRS, Univ. Bordeaux</span><span class="chip c-crypt">Cryptanalyse</span></div></li>
-      <li class="slot" data-cat="proto" data-start="16:30" data-end="17:00"><time>16h30</time><div><span class="t">Intégration des algorithmes PQ dans les protocoles de communication</span><span class="w">NCC Group</span><span class="chip c-proto">Protocoles</span></div></li>
-      <li class="slot" data-cat="other" data-start="17:00" data-end="18:00"><time>17h00</time><div><span class="t">Présentation de l'étude amont NYMPHEAS</span><span class="w">Secure-IC</span><span class="chip c-other">Autre</span></div></li>
-    </ul>
-    <p class="empty">Aucune intervention de ce thème ce jour-là.</p>
-  </div>
-
-  <div class="day" id="day-thu" role="tabpanel" aria-labelledby="tab-thu" data-date="2026-11-19" hidden>
-    <ul class="slots">
-      <li class="slot" data-cat="other" data-start="9:00" data-end="10:30"><time>9h00</time><div><span class="t">Posters des jeunes chercheurs : présentations puis discussions</span><span class="w">Doctorants de l'IRISA, d'écoles et d'industriels</span><span class="chip c-other">Posters</span></div></li>
-      <li class="slot" data-cat="policy" data-start="11:00" data-end="12:00"><time>11h00</time><div><span class="t">Migration PQC aux Pays-Bas : stratégies et retours d'expérience</span><span class="w">TNO</span><span class="chip c-policy">Politique</span></div></li>
-      <li class="slot" data-cat="impl" data-start="13:30" data-end="14:10"><time>13h30</time><div><span class="t">Sécuriser demain avec la PQC</span><span class="w">NXP</span><span class="chip c-impl">Implémentation</span></div></li>
-      <li class="slot" data-cat="impl" data-start="14:10" data-end="14:50"><time>14h10</time><div><span class="t">Protéger la PQC en environnement hostile (white-box), étude de cas FrodoKEM</span><span class="w">IDEMIA</span><span class="chip c-impl">Implémentation</span></div></li>
-      <li class="slot" data-cat="impl" data-start="14:50" data-end="15:30"><time>14h50</time><div><span class="t">Implémentations embarquées sûres de ML-KEM et ML-DSA</span><span class="w">CryptoExperts</span><span class="chip c-impl">Implémentation</span></div></li>
-      <li class="slot" data-cat="adv" data-start="16:00" data-end="16:30"><time>16h00</time><div><span class="t">Credentials anonymes dans un monde post-quantique</span><span class="w">Orange Labs</span><span class="chip c-adv">Crypto avancée</span></div></li>
-      <li class="slot" data-cat="adv" data-start="16:30" data-end="17:00"><time>16h30</time><div><span class="t">Le protocole Zama dans un monde post-quantique</span><span class="w">Zama</span><span class="chip c-adv">Crypto avancée</span></div></li>
-      <li class="slot" data-cat="proto" data-start="17:00" data-end="17:30"><time>17h00</time><div><span class="t">DAKE : échange de clés économe en bande passante (double KEM)</span><span class="w">Thales</span><span class="chip c-proto">Protocoles</span></div></li>
-      <li class="slot" data-cat="proto" data-start="17:30" data-end="18:00"><time>17h30</time><div><span class="t">Triple Ratchet : protocole Signal hybride économe en bande passante</span><span class="w">PQShield</span><span class="chip c-proto">Protocoles</span></div></li>
-    </ul>
-    <p class="empty">Aucune intervention de ce thème ce jour-là.</p>
-  </div>
-
-  <details>
-    <summary>Thèmes des posters (jeudi)</summary>
-    <ul>
-      <li>Cosets cyclotomiques et problèmes de « hidden shift » généralisés</li>
-      <li>LSTM homomorphe pratique par bootstrapping programmable</li>
-      <li>Réduction interne tronquée et mise au carré vectorisée dans le PMN</li>
-      <li>Analyse par canaux auxiliaires d'arbres de graines GGM : application à MQOM</li>
-      <li>Masquage de ML-DSA</li>
-      <li>Signatures aveugles compactes à partir d'hypothèses sur les réseaux</li>
-      <li>Cadre pour l'échange de clés hybride PQ/classique</li>
-      <li>Attaques différentielles tronquées quantiques</li>
-      <li>Matériel optimisé pour signatures à base de hash (LMS, XMSS, SLH-DSA)</li>
-      <li>Résilience aux fuites bruitées sans perte liée à la taille du corps</li>
-      <li>Schéma de chiffrement MinRank Gabidulin</li>
-      <li>Architecture commune ML-KEM / ML-DSA / FN-DSA</li>
-    </ul>
-    <p class="sub"><a href="https://www.creachlabs.fr/sites/default/files/public/media/document/2026-11/pqc-2026-accepted-posters.pdf">Liste officielle des posters (PDF)</a></p>
-  </details>
-
-  <details>
-    <summary>Questions utiles à poser à un intervenant</summary>
-    <ul>
-      <li>Quel est le point le plus difficile de la migration sur le terrain : l'inventaire, les protocoles ou les équipements ?</li>
-      <li>Quelle est la taille réelle du surcoût (latence, certificats, RAM) que vous observez ?</li>
-      <li>L'hybridation est-elle un passage obligé ou une étape de transition ?</li>
-      <li>Quelles questions de recherche restent ouvertes dans votre domaine ?</li>
-    </ul>
-  </details>
+<section>
+<h2 id="entrees" style="margin-top:56px">Quatre entrées</h2>
+<div class="grid g2" style="margin-top:14px">
+  <a class="card" href="iot.html"><h3>Objets contraints</h3><p>Tailles de clés et de signatures, liens radio, temps et mémoire sur Cortex-M4, protocoles légers, signature de firmware, attaques physiques.</p><span class="go">Ouvrir <span aria-hidden="true">→</span></span></a>
+  <a class="card" href="ot-it.html"><h3>OT vs IT</h3><p>Durée de vie, disponibilité, modèle de Purdue, protocoles industriels, priorité de l'intégrité, calendrier européen et inégalité de Mosca.</p><span class="go">Ouvrir <span aria-hidden="true">→</span></span></a>
+  <a class="card" href="iec62443.html"><h3>IEC 62443</h3><p>La série partie par partie, niveaux de sécurité, zones et conduits, cryptographie, certification et ce que la norme dit de la PQC.</p><span class="go">Ouvrir <span aria-hidden="true">→</span></span></a>
+  <a class="card" href="conversation.html"><h3>Prêt à parler</h3><p>Pitchs de 30 secondes, chiffres à connaître, questions difficiles, fiches mémo à réviser et glossaire.</p><span class="go">Ouvrir <span aria-hidden="true">→</span></span></a>
+</div>
 </section>
 
-<!-- CONCEPTS -->
-<section id="concepts">
-  <h2>2. Concepts essentiels</h2>
-  <p class="lead">Ce qu'il faut avoir en tête pour suivre n'importe quel exposé.</p>
-
-  <div class="grid two">
-    <div class="card"><h3>Shor</h3><p>Factorisation et logarithme discret deviennent faciles : RSA, Diffie-Hellman et ECC tombent. Toute la cryptographie asymétrique actuelle est concernée.</p></div>
-    <div class="card"><h3>Grover</h3><p>Accélération quadratique de la recherche exhaustive. On double les tailles de clés symétriques (AES-256) et de hash, sans catastrophe.</p></div>
-    <div class="card"><h3>« Harvest Now, Decrypt Later »</h3><p>Du trafic chiffré est stocké aujourd'hui pour être déchiffré plus tard. Urgent pour la <em>confidentialité</em> ; les signatures sont moins pressantes mais plus difficiles à migrer (PKI, firmware, secure boot).</p></div>
-    <div class="card"><h3>PQC ≠ QKD</h3><p>La PQC est de la cryptographie classique résistante au quantique, déployable en logiciel. La QKD, distribution quantique de clés, exige du matériel dédié.</p></div>
-  </div>
-
-  <h3>Les cinq familles mathématiques</h3>
-  <div class="tw"><table>
-    <tr><th>Famille</th><th>Problème dur</th><th>Exemples</th></tr>
-    <tr><td>Réseaux euclidiens</td><td>LWE, Module-LWE, SIS</td><td>ML-KEM, ML-DSA, FN-DSA, FrodoKEM</td></tr>
-    <tr><td>Codes correcteurs</td><td>Décodage de syndrome</td><td>HQC, Classic McEliece, BIKE</td></tr>
-    <tr><td>Fonctions de hachage</td><td>Résistance du hash</td><td>SLH-DSA, LMS, XMSS</td></tr>
-    <tr><td>Multivarié</td><td>MQ, MinRank</td><td>UOV, MQOM</td></tr>
-    <tr><td>Isogénies</td><td>Isogénies de courbes elliptiques</td><td>SQIsign</td></tr>
-  </table></div>
-
-  <h3>Notions transverses</h3>
-  <details open>
-    <summary>Hybridation</summary>
-    <p>Combiner un algorithme classique et un algorithme PQ pour ne pas dépendre d'un seul pari (par exemple X25519 + ML-KEM dans TLS). L'ANSSI la recommande fortement, sans obligation réglementaire à ce jour, sauf pour les signatures à base de hash où elle ne la recommande pas systématiquement. <span class="badge warn">à vérifier sur cyber.gouv.fr</span></p>
-  </details>
-  <details>
-    <summary>Canaux auxiliaires</summary>
-    <p>Attaques par temps de calcul, consommation, rayonnement ou fautes contre une <em>implémentation</em>, pas contre les mathématiques. Contre-mesure typique : le masquage.</p>
-  </details>
-  <details>
-    <summary>Cryptanalyse</summary>
-    <p>Évaluer la sécurité réelle des paramètres : estimateurs de sécurité, attaques sur les réseaux, attaques sur les schémas candidats.</p>
-  </details>
-  <details>
-    <summary>Crypto-agilité</summary>
-    <p>Pouvoir changer d'algorithme sans refonte du système. Indispensable quand les standards évoluent encore.</p>
-  </details>
-  <details>
-    <summary>Inventaire cryptographique (CBOM)</summary>
-    <p>Savoir où et comment la cryptographie est utilisée dans un système d'information : première étape de toute migration.</p>
-  </details>
-  <details>
-    <summary>Vérification formelle</summary>
-    <p>Preuve de propriétés d'implémentations ou de protocoles, avec des outils comme Tamarin, ProVerif ou EasyCrypt.</p>
-  </details>
+<section>
+<h2 id="outils">Les outils</h2>
+<p class="lead" style="font-size:1.05rem">Chacun tourne dans votre navigateur, sans envoi de données.</p>
+<div class="grid g3" style="margin-top:14px">
+  <a class="card" href="iot.html#outil-tailles"><h4>Explorateur de tailles</h4><p>Combien de trames radio pour un handshake post-quantique, selon l'algorithme et le lien ?</p></a>
+  <a class="card" href="iot.html#calcul"><h4>Benchmarks Cortex-M4</h4><p>Durées selon la fréquence, pile selon votre budget de RAM.</p></a>
+  <a class="card" href="ot-it.html#horloge"><h4>Horloge quantique</h4><p>L'inégalité de Mosca et le cycle de vie d'un équipement face aux jalons européens.</p></a>
+  <a class="card" href="ot-it.html#modele-purdue"><h4>Modèle de Purdue</h4><p>Où se loge la cryptographie, niveau par niveau.</p></a>
+  <a class="card" href="iec62443.html#carte"><h4>Carte de l'IEC 62443</h4><p>Les parties de la série, leur rôle et leur titre.</p></a>
+  <a class="card" href="conversation.html#fiches"><h4>Fiches mémo</h4><p>Vingt-trois questions pour vérifier ce que vous retenez.</p></a>
+</div>
 </section>
 
-<!-- STANDARDS -->
-<section id="standards">
-  <h2>3. Standards et calendrier</h2>
-  <div class="tw"><table>
-    <tr><th>Standard</th><th>Rôle</th><th>État</th></tr>
-    <tr><td>FIPS 203 · ML-KEM</td><td>Encapsulation de clé (ex-Kyber)</td><td><span class="badge">Publié 2024</span></td></tr>
-    <tr><td>FIPS 204 · ML-DSA</td><td>Signature (ex-Dilithium)</td><td><span class="badge">Publié 2024</span></td></tr>
-    <tr><td>FIPS 205 · SLH-DSA</td><td>Signature à base de hash (ex-SPHINCS+)</td><td><span class="badge">Publié 2024</span></td></tr>
-    <tr><td>FIPS 206 · FN-DSA</td><td>Signature compacte (ex-Falcon)</td><td><span class="badge warn">Projet</span> version finale attendue fin 2026 ou début 2027</td></tr>
-    <tr><td>FIPS 207 · HQC</td><td>KEM basé codes, secours de ML-KEM</td><td><span class="badge warn">Sélectionné mars 2025</span> version finale visée en 2027</td></tr>
-  </table></div>
-  <p class="sub">Les statuts de FIPS 206 et 207 viennent de sources secondaires : vérifie sur csrc.nist.gov.</p>
-  <p>L'appel NIST « additional signatures » cherche des signatures plus courtes ou plus variées ; SQIsign, MQOM et HAWK sont des candidats évoqués pendant le workshop.</p>
-
-  <h3>Feuille de route européenne (juin 2025)</h3>
-  <div class="grid">
-    <div class="card"><span class="badge">Fin 2026</span><p>Stratégies nationales, inventaires, premiers pilotes.</p></div>
-    <div class="card"><span class="badge">Fin 2030</span><p>Migration des systèmes à haut risque, dont les infrastructures critiques.</p></div>
-    <div class="card"><span class="badge">Fin 2035</span><p>Migration des systèmes à risque moyen ou faible.</p></div>
-  </div>
-  <p class="sub">Confirmé par plusieurs sources secondaires, pas par le texte original de la Commission. Des articles rapportent aussi des dates ANSSI (2027, 2030), non confirmées dans un texte officiel.</p>
+<section>
+<h2 id="lire">Comment lire ce site</h2>
+<div class="grid g2">
+  <div class="card"><h3>Trois niveaux de lecture</h3>
+  <p>Le bouton « Affichage » en haut de page règle le niveau :</p>
+  <ul><li><strong>Essentiel</strong> : l'idée et les chiffres clés.</li><li><strong>Approfondi</strong> : le mécanisme et les comparaisons.</li><li><strong>Expert</strong> : détails d'implémentation et limites des sources.</li></ul></div>
+  <div class="card"><h3>Chaque affirmation indique sa source</h3>
+  <p><span class="badge b-prim">source primaire</span> texte officiel ou mesure originale lus.<br>
+  <span class="badge b-sec" style="margin-top:6px">source secondaire</span> résumé, article de vendeur ou extrait ; à recouper.<br>
+  <span class="badge b-ver" style="margin-top:6px">à vérifier</span> non confirmé : ne le répétez pas sans contrôle.</p></div>
+</div>
+<div class="note piege"><div class="nt">Ce que ce site n'est pas</div><p>Ce n'est pas une source officielle et il n'a pas de valeur juridique. Les normes IEC 62443 sont payantes : je n'ai lu aucune édition, et les formulations normatives ne sont pas citées. Chaque page se termine par la liste de ses limites.</p></div>
 </section>
 
-<!-- IOT / OT -->
-<section id="iot">
-  <h2>4. IoT et OT</h2>
-  <p class="lead">Pourquoi la PQC pose un problème particulier sur les objets connectés et les systèmes industriels.</p>
-
-  <p>Un objet connecté a peu de mémoire, peu de calcul, une batterie limitée et un lien radio à faible débit. La PQC coûte plus cher sur tous ces points.</p>
-  <div class="tw"><table>
-    <tr><th></th><th>Classique</th><th>Post-quantique</th></tr>
-    <tr><td>Échange de clés</td><td>X25519 : clé publique 32 octets</td><td>ML-KEM-768 : clé publique 1 184 o, chiffré 1 088 o</td></tr>
-    <tr><td>Signature</td><td>Ed25519 : signature 64 o, clé publique 32 o</td><td>ML-DSA-65 : signature 3 309 o, clé publique 1 952 o</td></tr>
-  </table></div>
-  <p class="sub">Tailles tirées des tables de paramètres FIPS 203/204 ; à recouper avec les documents NIST.</p>
-  <p>Conséquences : messages qui ne tiennent plus dans une trame radio, certificats plus gros, plus de RAM, plus d'énergie. D'où l'intérêt des protocoles légers : <strong>EDHOC</strong> (RFC 9528) et le groupe IETF <strong>LAKE</strong>, qui l'adapte à la PQC.</p>
-
-  <h3>IT et OT : ce qui change</h3>
-  <div class="tw"><table>
-    <tr><th>Point</th><th>IT</th><th>OT (systèmes industriels)</th></tr>
-    <tr><td>Durée de vie</td><td>3 à 5 ans</td><td>15 à 30 ans</td></tr>
-    <tr><td>Mises à jour</td><td>Fréquentes</td><td>Rares, souvent contraintes</td></tr>
-    <tr><td>Priorité</td><td>Confidentialité</td><td>Disponibilité et sûreté</td></tr>
-    <tr><td>Protocoles</td><td>TLS, SSH, HTTPS</td><td>Modbus, DNP3, OPC UA, propriétaires</td></tr>
-  </table></div>
-  <p>Un équipement posé aujourd'hui sera encore là en 2040 : il faut prévoir la crypto-agilité et inventorier ce qui existe. Des sources de vendeurs citent l'IEC 62443, NIS2 et le CRA comme moteurs réglementaires. <span class="badge warn">à vérifier dans les textes</span></p>
+<section>
+<h2 id="aussi">Aussi</h2>
+<div class="grid g2">
+  <a class="card" href="ecw.html"><h4>European Cyber Week 2026</h4><p>Programme filtrable du workshop post-quantique de Rennes, 18 et 19 novembre.</p></a>
+  <a class="card" href="cifre.html"><h4>La thèse CIFRE</h4><p>Les règles du dispositif en 2026 et les étapes du montage.</p></a>
+</div>
 </section>
 
-<!-- CIFRE -->
-<section id="cifre">
-  <h2>5. La thèse CIFRE : règles générales</h2>
-  <p class="lead">Source : plaquette ANRT de mars 2026 et lettre de cadrage universitaire 2026.</p>
-  <div class="grid two">
-    <div class="card"><h3>Pour l'entreprise</h3>
-      <ul>
-        <li>Cadre : décret n° 2025-1398 du 29 décembre 2025.</li>
-        <li>Contrat en <strong>CDI ou CDD de 36 mois</strong>, temps plein.</li>
-        <li>Salaire brut annuel d'au moins <strong>27 600 €</strong> (valeur 2026).</li>
-        <li>Subvention ANRT : <strong>14 000 € par an pendant 3 ans</strong>.</li>
-      </ul>
-    </div>
-    <div class="card"><h3>Pour le candidat</h3>
-      <ul>
-        <li>Titulaire du grade de master.</li>
-        <li>Pas inscrit en doctorat depuis plus de 9 mois.</li>
-        <li>Pas embauché chez l'employeur depuis plus de <strong>9 mois</strong> à la date de dépôt du dossier (hors stage, apprentissage, alternance).</li>
-      </ul>
-    </div>
-  </div>
-  <div class="card"><h3>Le montage</h3>
-    <ul>
-      <li>Trois acteurs : l'entreprise, le laboratoire académique (directeur de thèse, école doctorale) et le doctorant.</li>
-      <li>Un <strong>contrat de collaboration</strong> (propriété intellectuelle, confidentialité) doit être signé avant le démarrage de la thèse.</li>
-      <li>Le dossier est déposé en ligne par l'entreprise ; l'ANRT décide environ 2 à 3 mois après le dépôt.</li>
-      <li>Contact : cifre@anrt.asso.fr.</li>
-    </ul>
-  </div>
-</section>
-
-<!-- SOURCES -->
-<section id="sources">
-  <h2>6. Sources</h2>
-  <ul>
-    <li><a href="https://lercier.pages.math.cnrs.fr/pqc-workshop-2026/index.html">Workshop PQC 2026</a></li>
-    <li><a href="https://cybersecurity-centre.europa.eu/events/european-cyber-week-16-19-november-2026-rennes-france-2026-11-16_bg">European Cyber Week 2026</a></li>
-    <li><a href="https://www.anrt.asso.fr/sites/default/files/2026-03/Cifre_2026.pdf">Plaquette CIFRE ANRT, mars 2026</a></li>
-    <li><a href="https://cyber.gouv.fr/enjeux-technologiques/cryptographie-post-quantique/faq-pqc/">FAQ PQC de l'ANSSI</a></li>
-    <li><a href="https://csrc.nist.gov/projects/post-quantum-cryptography">NIST, projet PQC</a></li>
-    <li><a href="https://arxiv.org/pdf/2401.17538">Survey : PQC pour l'IoT</a></li>
-    <li><a href="https://arxiv.org/pdf/2402.00790">Survey : du pré-quantique au post-quantique pour l'IoT</a></li>
-    <li><a href="https://www.rand.org/pubs/research_reports/RRA2427-1.html">RAND : vulnérabilités quantiques des systèmes de contrôle industriels</a></li>
-  </ul>
-</section>
-
+</div>
 </main>
 
-<footer class="wrap">
-  <p>PQC Lab · notes personnelles. Les informations peuvent être incomplètes ou dépassées ; vérifie les sources officielles avant de t'y fier.</p>
-</footer>
+<div id="site-footer"></div>
+<nav id="site-tabbar"></nav>
 
-<button type="button" class="totop" id="totop" aria-label="Retour en haut">↑</button>
-
+<script src="assets/glossary.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tools.js"></script>
 <script>
+/* Réseau de points légèrement bruités : image d'un réseau euclidien (LWE). Décoratif. */
 (function(){
-  var root = document.documentElement;
-
-  /* ---- Thème : auto / clair / sombre ---- */
-  var themeBtns = document.querySelectorAll('[data-theme-btn]');
-  var metaTheme = document.querySelector('meta[name="theme-color"]');
-  function current(){
-    var t = root.getAttribute('data-theme');
-    return (t === 'light' || t === 'dark') ? t : 'auto';
+  var s = document.getElementById('lattice'); if (!s) return;
+  var seed = 7; function r(){ seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+  var out = '', n = 9, gap = 40, off = 20;
+  for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) {
+    var x = off + i * gap, y = off + j * gap, nx = x + (r() - .5) * 15, ny = y + (r() - .5) * 15;
+    out += '<circle cx="' + x + '" cy="' + y + '" r="2.2" fill="currentColor" opacity=".35"/>';
+    out += '<line x1="' + x + '" y1="' + y + '" x2="' + nx + '" y2="' + ny + '" stroke="currentColor" stroke-width="1" opacity=".35"/>';
+    out += '<circle cx="' + nx + '" cy="' + ny + '" r="3.4" fill="currentColor" opacity=".8"/>';
   }
-  function paint(){
-    var c = current();
-    themeBtns.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-theme-btn') === c)); });
-    var dark = c === 'dark' || (c === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
-    if (metaTheme) metaTheme.setAttribute('content', dark ? '#0e1311' : '#f5f4ef');
-  }
-  function setTheme(t){
-    if (t === 'light' || t === 'dark') root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
-    try { if (t === 'auto') localStorage.removeItem('pqc-theme'); else localStorage.setItem('pqc-theme', t); } catch(e){}
-    paint();
-  }
-  themeBtns.forEach(function(b){ b.addEventListener('click', function(){ setTheme(b.getAttribute('data-theme-btn')); }); });
-  if (window.matchMedia) {
-    var mq = matchMedia('(prefers-color-scheme: dark)');
-    (mq.addEventListener ? mq.addEventListener.bind(mq,'change') : mq.addListener.bind(mq))(paint);
-  }
-  paint();
-
-  /* ---- Programme : onglets jour + filtres ---- */
-  var tabs = document.querySelectorAll('.tabs [role="tab"]');
-  var days = document.querySelectorAll('.day');
-  var filter = 'all';
-  function showDay(id){
-    tabs.forEach(function(t){ t.setAttribute('aria-selected', String(t.getAttribute('aria-controls') === id)); });
-    days.forEach(function(d){ d.hidden = d.id !== id; });
-    applyFilter();
-  }
-  function applyFilter(){
-    days.forEach(function(d){
-      var shown = 0;
-      d.querySelectorAll('.slot').forEach(function(s){
-        var ok = filter === 'all' || s.getAttribute('data-cat') === filter;
-        s.hidden = !ok; if (ok) shown++;
-      });
-      var e = d.querySelector('.empty'); if (e) e.style.display = shown ? 'none' : 'block';
-    });
-  }
-  tabs.forEach(function(t){ t.addEventListener('click', function(){ showDay(t.getAttribute('aria-controls')); }); });
-  document.querySelectorAll('.filters [data-f]').forEach(function(b){
-    b.addEventListener('click', function(){
-      filter = b.getAttribute('data-f');
-      document.querySelectorAll('.filters [data-f]').forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); });
-      applyFilter();
-    });
-  });
-  /* Ouvre le bon jour et surligne le créneau en cours si on est pendant le workshop. */
-  function minutes(s){ var p = s.split(':'); return +p[0]*60 + +p[1]; }
-  function liveMark(){
-    var now = new Date();
-    var ymd = now.getFullYear() + '-' + ('0'+(now.getMonth()+1)).slice(-2) + '-' + ('0'+now.getDate()).slice(-2);
-    var m = now.getHours()*60 + now.getMinutes();
-    document.querySelectorAll('.slot.now').forEach(function(s){ s.classList.remove('now'); });
-    days.forEach(function(d){
-      if (d.getAttribute('data-date') !== ymd) return;
-      d.querySelectorAll('.slot').forEach(function(s){
-        if (m >= minutes(s.getAttribute('data-start')) && m < minutes(s.getAttribute('data-end'))) s.classList.add('now');
-      });
-    });
-  }
-  (function(){
-    var now = new Date();
-    var ymd = now.getFullYear() + '-' + ('0'+(now.getMonth()+1)).slice(-2) + '-' + ('0'+now.getDate()).slice(-2);
-    var today = document.querySelector('.day[data-date="' + ymd + '"]');
-    if (today) showDay(today.id); else applyFilter();
-    liveMark(); setInterval(liveMark, 60000);
-  })();
-
-  /* ---- Navigation : section courante ---- */
-  var links = document.querySelectorAll('.nav a');
-  var map = {};
-  links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
-  if ('IntersectionObserver' in window) {
-    var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(en){
-        if (en.isIntersecting && map[en.target.id]) {
-          links.forEach(function(a){ a.removeAttribute('aria-current'); });
-          map[en.target.id].setAttribute('aria-current', 'true');
-          map[en.target.id].scrollIntoView({block:'nearest', inline:'center'});
-        }
-      });
-    }, {rootMargin:'-20% 0px -70% 0px'});
-    Object.keys(map).forEach(function(id){ var s = document.getElementById(id); if (s) io.observe(s); });
-  }
-
-  /* ---- Retour en haut ---- */
-  var top = document.getElementById('totop');
-  window.addEventListener('scroll', function(){ top.classList.toggle('show', window.scrollY > 600); }, {passive:true});
-  top.addEventListener('click', function(){ window.scrollTo({top:0}); });
+  s.innerHTML = out;
 })();
 </script>
 </body>

@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OT vs IT et PQC – PQC Lab</title>
+<meta name="description" content="Durée de vie, disponibilité, protocoles industriels et modèle de Purdue : pourquoi la migration post-quantique est différente dans les systèmes industriels. Avec calculateur de l'inégalité de Mosca.">
+<meta name="theme-color" content="#f7f6f2">
+<script>(function(){try{var t=localStorage.getItem('pqc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body data-page="ot">
+<a class="skip" href="#main">Aller au contenu</a>
+<div id="site-header"></div>
+<div id="site-sheet"></div>
+
+<main id="main">
+<div class="wrap">
+  <header class="pagehead">
+    <div class="crumbs"><a href="index.html">Accueil</a> / OT vs IT</div>
+    <div class="eyebrow">Systèmes industriels et PQC</div>
+    <h1>Pourquoi l'industrie ne migre pas comme l'IT</h1>
+    <p class="lead">Un équipement industriel posé aujourd'hui sera encore en service dans vingt ans, ne peut presque jamais être arrêté pour une mise à jour, et parle des protocoles nés bien avant le Web. La migration post-quantique y est un problème d'ingénierie de long terme.</p>
+    <div class="meta"><span>Lecture : 15 à 25 min selon le niveau</span><span>Mis à jour le 18 novembre 2026</span></div>
+  </header>
+</div>
+
+<div class="wrap page has-toc">
+<aside class="toc" id="toc" aria-label="Sommaire"></aside>
+<article>
+<div id="toc-m"></div>
+
+<section>
+<h2 id="essentiel">L'essentiel</h2>
+<div class="grid g3">
+  <div class="card"><div class="stat">&gt; 20<small>ans</small></div><div class="stat-l">Durée de vie possible d'un système OT, contre 3 à 5 ans en IT. <a class="src" href="https://csrc.nist.gov/pubs/sp/800/82/r3/final">NIST SP 800-82r3</a></div></div>
+  <div class="card"><div class="stat">Sûreté</div><div class="stat-l">Priorité n°1 en OT, avant la disponibilité, l'intégrité puis la confidentialité.</div></div>
+  <div class="card"><div class="stat">2030</div><div class="stat-l">Échéance européenne pour les systèmes à haut risque et des mises à jour de firmware quantum-safe par défaut. Recommandation non contraignante.</div></div>
+</div>
+<div class="note retenir"><div class="nt">À retenir</div>
+<p>En OT, la question n'est pas seulement « quand migrer le chiffrement ? » mais « <strong>comment signer, vérifier et mettre à jour</strong> des équipements qui resteront vingt ans sur le terrain ? ». Les textes officiels que j'ai lus insistent davantage sur l'intégrité (mises à jour signées, accès distant) que sur la confidentialité à long terme.</p></div>
+<div class="note dire"><div class="nt">À dire en conversation</div>
+<p>« La menace “stocker maintenant, déchiffrer plus tard” pèse sur la confidentialité. Mais en OT, la donnée de terrain est surtout périssable : ce qui compte, c'est l'authenticité des commandes et des mises à jour. Et un firmware signé aujourd'hui doit encore être vérifiable dans vingt ans. »</p></div>
+</section>
+
+<section>
+<h2 id="difference">1. Ce qui sépare vraiment l'OT de l'IT</h2>
+<p><abbr class="g" data-g="ot">OT</abbr> désigne les systèmes qui surveillent ou pilotent des processus physiques. La référence de base est le guide <strong>NIST SP 800-82 révision 3</strong> (septembre 2023). <span class="badge b-prim">source primaire</span></p>
+<div class="tw"><table style="min-width:600px">
+<thead><tr><th>Point</th><th>IT</th><th>OT</th></tr></thead>
+<tbody>
+<tr><td>Durée de vie</td><td>3 à 5 ans</td><td>Souvent 10 à 15 ans, parfois plus de 20, avec des systèmes qu'on ne peut plus corriger</td></tr>
+<tr><td>Priorités</td><td>Confidentialité, intégrité, disponibilité</td><td>Sûreté, puis disponibilité, intégrité, confidentialité</td></tr>
+<tr><td>Temps</td><td>Latence tolérée</td><td>Boucles de contrôle de la milliseconde à la minute ; le déterminisme compte</td></tr>
+<tr><td>Mises à jour</td><td>Fréquentes, automatisées</td><td>Rares, planifiées pendant des arrêts, parfois impossibles</td></tr>
+<tr><td>Protocoles</td><td>TLS, SSH, HTTPS</td><td>Modbus, DNP3, OPC UA, PROFINET, EtherNet/IP, protocoles propriétaires</td></tr>
+</tbody><caption>Durée de vie, priorités et temps : NIST SP 800-82r3 (<a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-82r3.pdf">PDF</a>). Les autres lignes sont des généralités.</caption></table></div>
+<div class="lv2">
+<h3>Pourquoi on ne « patche » pas simplement</h3>
+<ul>
+<li>Un arrêt peut coûter de la production, voire créer un risque pour des personnes. Les mises à jour attendent une fenêtre de maintenance.</li>
+<li>Un changement logiciel peut obliger à requalifier un équipement ou un système de sûreté.</li>
+<li>Certains équipements n'ont plus de fournisseur, ou n'ont jamais prévu de mécanisme de mise à jour.</li>
+</ul>
+<div class="note verif"><div class="nt">À vérifier</div><p>Je n'ai pas trouvé de source primaire pour la durée de vie des relais de protection, ni pour les fenêtres de maintenance ou le rôle exact des systèmes instrumentés de sûreté (IEC 61508). Ce sont des généralités répandues, pas des faits sourcés ici.</p></div>
+</div>
+</section>
+
+<section>
+<h2 id="modele-purdue">2. Le modèle de Purdue : où se loge la cryptographie</h2>
+<p>Le modèle de Purdue (lié à ISA-95 / IEC 62264) découpe un système industriel en niveaux, du procédé physique à l'entreprise. Le NIST SP 800-82r3 le cite comme exemple d'architecture segmentée et recommande une <abbr class="g" data-g="dmz">DMZ</abbr> entre l'OT et l'entreprise. <span class="badge b-prim">primaire</span> Cliquez sur un niveau.</p>
+<div id="purdue" class="purdue"><div class="pl"></div><div class="pd" aria-live="polite"></div></div>
+<div class="note piege"><div class="nt">Piège</div><p>Le niveau 3.5 (DMZ) ne fait pas partie du modèle d'origine ; il s'est imposé en pratique. Certains vendeurs affirment que Purdue est dépassé au profit des zones et conduits de l'IEC 62443 : <span class="badge b-ver">non vérifié</span>. Les colonnes « cryptographie » et « enjeu PQC » du schéma ci-dessus sont des synthèses indicatives, pas des citations.</p></div>
+</section>
+
+<section>
+<h2 id="protocoles">3. Les protocoles industriels et leur cryptographie</h2>
+<p>Ce tableau résume ce que j'ai pu vérifier. La dernière colonne est <strong>mon inférence</strong>, sauf pour OPC UA où une étude existe.</p>
+<div class="tw"><table style="min-width:820px">
+<thead><tr><th>Protocole</th><th>Sécurité native</th><th>Cryptographie</th><th>Impact PQC probable (inférence)</th></tr></thead>
+<tbody>
+<tr><td><abbr class="g" data-g="modbus">Modbus/TCP</abbr></td><td>Aucune authentification dans le protocole classique. Modbus/TCP Security l'encapsule dans TLS sur le port 802, avec authentification mutuelle par certificats X.509.</td><td>TLS, X.509. <a class="src" href="https://www.modbus.org/news/modbus-security-new-protocol-to-improve-control-system-security">Modbus.org</a> <span class="badge b-sec">secondaire</span></td><td>Suit la migration de TLS (échange de clés et certificats).</td></tr>
+<tr><td><abbr class="g" data-g="opcua">OPC UA</abbr></td><td>Modes de signature et de chiffrement, politiques de sécurité (Basic256Sha256, Aes128_Sha256_RsaOaep, Aes256_Sha256_RsaPss). Basic128Rsa15 et Basic256 sont dépréciées.</td><td>RSA et X.509. <span class="badge b-sec">secondaire</span></td><td>Des chercheurs de Bosch ont proposé une intégration PQC hybride ou PQC seule : la variante PQC seule est plus rapide au handshake, mais ses messages sont plus gros. <a class="src" href="https://eprint.iacr.org/2021/1563">ePrint 2021/1563</a> Position de l'OPC Foundation : <span class="badge b-ver">non trouvée</span></td></tr>
+<tr><td><abbr class="g" data-g="dnp3">DNP3 SAv5</abbr></td><td>Authentification par défi-réponse avec MAC (HMAC), sans chiffrement. La confidentialité demande DNP3 sur TLS.</td><td>Primitives symétriques. <span class="badge b-sec">vendeur</span></td><td>Peu touché si la clé de mise à jour est symétrique ; exposé si cette gestion de clés est asymétrique.</td></tr>
+<tr><td><abbr class="g" data-g="iec62351">IEC 62351</abbr> (IEC 61850)</td><td>Partie 3 : profils TLS ; partie 6 : protection de GOOSE et de Sampled Values par clés de groupe symétriques ; partie 9 : gestion des clés.</td><td>TLS, PKI, clés de groupe. <a class="src" href="https://webstore.iec.ch/en/publication/66864">IEC</a></td><td>TLS et PKI concernés ; la protection de groupe symétrique moins.</td></tr>
+<tr><td>PROFINET</td><td>Trois classes de sécurité : les classes 2 et 3 ajoutent la protection cryptographique, la classe 3 la confidentialité du temps réel cyclique.</td><td>Non détaillé ici. <a class="src" href="https://www.profibus.com/download/profinet-security-guideline">PI</a></td><td>Non documenté.</td></tr>
+<tr><td>EtherNet/IP CIP Security</td><td>TLS pour les messages explicites, DTLS pour le cyclique, certificats X.509 gérés par un objet dédié.</td><td>TLS, DTLS, X.509. <a class="src" href="https://www.odva.org/?p=22">ODVA</a></td><td>Celui de TLS, DTLS et X.509.</td></tr>
+<tr><td>MQTT / Sparkplug</td><td colspan="3"><span class="badge b-ver">non recherché</span></td></tr>
+</tbody></table></div>
+<div class="note verif"><div class="nt">À vérifier</div><p>Plusieurs de ces lignes viennent d'extraits de pages résumés par l'outil de lecture, pas de lectures intégrales des spécifications (OPC UA, CIP Security, PROFINET). Les spécifications Modbus/TCP Security et OPC UA n'étaient pas lisibles dans mon environnement.</p></div>
+</section>
+
+<section>
+<h2 id="priorite">4. Confidentialité ou intégrité : quelle menace passe en premier ?</h2>
+<p>La menace « stocker maintenant, déchiffrer plus tard » (<abbr class="g" data-g="hndl">HNDL</abbr>) concerne la <strong>confidentialité</strong>. En OT, la valeur est souvent ailleurs : l'<strong>authenticité</strong> d'une commande ou d'un firmware. Que disent les sources ?</p>
+<div class="grid g3">
+  <div class="card"><h4>Union européenne</h4><p>La feuille de route du 23 juin 2025 recommande de sécuriser tôt les mises à jour de logiciels et de firmware avec des signatures post-quantiques, et cite un cas à risque élevé : une transition de plus de 8 ans à fort impact, comme les mises à jour logicielles. Elle ne parle pas explicitement d'OT. <span class="badge b-prim">primaire</span></p></div>
+  <div class="card"><h4>NCSC (Royaume-Uni)</h4><p>Jalons 2028 (découverte et plan), 2031 (migrations prioritaires), 2035 (tout). Pour l'OT : chemin moins clair, peu de produits attendus à court terme ; les données de terrain ont besoin d'intégrité, la confidentialité compte parfois moins ; les accès distants devront devenir quantum-safe. <a class="src" href="https://www.ncsc.gov.uk/guidance/pqc-migration-timelines">NCSC</a> <span class="badge b-sec">extrait résumé</span></p></div>
+  <div class="card"><h4>CISA, NSA, NIST (août 2023)</h4><p>La fiche « Quantum-Readiness » demande de prioriser les systèmes à fort impact, les systèmes de contrôle industriels et ceux à besoin de confidentialité longue, et d'inventorier les signatures, y compris celles des mises à jour de firmware. <a class="src" href="https://www.cisa.gov/resources-tools/resources/quantum-readiness-migration-post-quantum-cryptography">CISA</a> <span class="badge b-prim">primaire</span></p></div>
+</div>
+<div class="note retenir"><div class="nt">Ma synthèse</div><p>Trois sources étayent l'idée que l'intégrité (signatures, accès distant, mises à jour) est un sujet prioritaire en OT. <strong>Aucune ne classe explicitement l'authenticité avant la confidentialité</strong>, et les mêmes textes gardent la confidentialité à long terme comme critère de risque élevé. C'est une lecture défendable, pas une position officielle. Je n'ai pas trouvé d'article qui argumente l'inverse spécifiquement pour l'OT.</p></div>
+<div class="lv2 note piege"><div class="nt">Raisonnement, pas une source</div><p>L'inégalité de Mosca (voir plus bas) ne couvre que la confidentialité. Pour un firmware, la menace est une <em>falsification en temps réel</em> une fois que l'ordinateur quantique existe, pas une collecte préalable. L'urgence vient alors de la durée pendant laquelle l'équipement continuera de faire confiance à une clé ancienne, et de la capacité à en changer.</p></div>
+</section>
+
+<section>
+<h2 id="horloge">5. Outils : l'horloge quantique</h2>
+<div class="tool" id="tool-mosca">
+<div class="tool-h"><h3>Inégalité de Mosca : x + y &gt; z ?</h3><span class="tag">Interactif</span></div>
+<p style="margin:0;color:var(--fg-3);font-size:.92rem">x = durée pendant laquelle la donnée doit rester confidentielle. y = durée de la migration. z = délai avant un ordinateur quantique pertinent. Si x + y &gt; z, vous êtes déjà exposé. Source : Mosca, IACR ePrint 2015/1075 <span class="badge b-prim">primaire</span> (je n'ai lu que le résumé ; la définition x, y, z est confirmée par des sources secondaires).</p>
+<div class="ctl">
+  <div><label for="ms-x">x : confidentialité requise : <span id="ms-x-v"></span></label><input id="ms-x" type="range" min="0" max="50" value="20"></div>
+  <div><label for="ms-y">y : durée de migration : <span id="ms-y-v"></span></label><input id="ms-y" type="range" min="0" max="30" value="8"></div>
+  <div><label for="ms-z">z : délai avant le quantique : <span id="ms-z-v"></span></label><input id="ms-z" type="range" min="3" max="50" value="15"></div>
+</div>
+<div class="pill-row"><span style="font-size:.8rem;color:var(--fg-3);align-self:center">Scénarios pour z :</span>
+  <button type="button" data-z="8">8 ans</button><button type="button" data-z="10">10 ans</button><button type="button" data-z="15">15 ans</button><button type="button" data-z="20">20 ans</button><button type="button" data-z="30">30 ans</button></div>
+<div class="mtrack" aria-hidden="true"><div class="seg-y" id="ms-seg-y"></div><div class="seg-x" id="ms-seg-x" style="left:0"></div><div class="mmark" id="ms-z-mark"><span>z</span></div></div>
+<div class="axis"><span>0</span><span>15</span><span>30</span><span>45</span><span>60 ans</span></div>
+<div class="out">
+  <div class="cell"><b id="ms-sum">—</b><span>x + y</span></div>
+  <div class="cell"><b id="ms-margin">—</b><span>marge (z − x − y)</span></div>
+</div>
+<div class="verdict mid" id="ms-verdict"></div>
+<div class="legend"><span><i style="background:var(--accent-2)"></i>migration (y)</span><span><i style="background:var(--accent)"></i>confidentialité (x), après la migration</span><span><i style="background:var(--bad)"></i>z : arrivée du quantique</span></div>
+</div>
+<p>Et z ? C'est l'inconnue. Quelques repères, tous <strong>incertains</strong> :</p>
+<ul>
+<li><strong>Global Risk Institute, édition 2025</strong> : 28 à 49 % de chances d'un ordinateur quantique cryptographiquement pertinent sous 10 ans, 51 à 70 % sous 15 ans (26 experts ; page de synthèse, rapport complet non lu). <a class="src" href="https://globalriskinstitute.org/publication/quantum-threat-timeline-report-2025b/">GRI</a> <span class="badge b-sec">secondaire</span></li>
+<li><strong>Gidney, mai 2025</strong> : factoriser RSA-2048 demanderait moins d'un million de qubits bruités pendant moins d'une semaine, contre 20 millions de qubits en 8 heures dans l'estimation de 2019, sous des hypothèses précises. <a class="src" href="https://arxiv.org/abs/2505.15917">arXiv 2505.15917</a> <span class="badge b-prim">primaire</span></li>
+</ul>
+<p class="lv2">Ces scénarios ne sont <strong>pas des prévisions</strong> : choisissez un z prudent plutôt qu'un z central quand l'enjeu est élevé.</p>
+
+<div class="tool" id="tool-life">
+<div class="tool-h"><h3>Cycle de vie d'un équipement face aux jalons européens</h3><span class="tag">Interactif</span></div>
+<div class="ctl">
+  <div><label for="lc-start">Année de mise en service : <span id="lc-start-v"></span></label><input id="lc-start" type="range" min="2005" max="2035" value="2020"></div>
+  <div><label for="lc-life">Durée de vie prévue : <span id="lc-life-v"></span></label><input id="lc-life" type="range" min="5" max="40" value="20"></div>
+</div>
+<div class="ltrack" aria-hidden="true"><div class="lbar" id="lc-bar"></div>
+<div class="lmark" id="lc-m2026"><span>2026</span></div><div class="lmark" id="lc-m2030"><span>2030</span></div><div class="lmark" id="lc-m2035"><span>2035</span></div></div>
+<div class="axis"><span>2005</span><span>2020</span><span>2040</span><span>2070</span></div>
+<div class="out"><div class="cell"><b id="lc-end">—</b><span>année de fin de service</span></div></div>
+<div class="verdict mid" id="lc-verdict"></div>
+<p class="sub" style="color:var(--fg-3);font-size:.82rem;margin:12px 0 0">Jalons de la feuille de route coordonnée de l'UE (23 juin 2025) : fin 2026, fin 2030 (haut risque), fin 2035 (risque moyen, et faible autant que possible). Recommandation non contraignante.</p>
+</div>
+</section>
+
+<section>
+<h2 id="limites">6. Ce qui rend la migration difficile</h2>
+<div class="grid g2">
+  <div class="card"><h4>Ressources</h4><p>La PQC demande plus de bande passante et de stockage que RSA ou ECC. Exemple cité : vérification de signature au démarrage sécurisé sur un Cortex-M0+ avec 32 Kio de RAM. <span class="badge b-sec">vendeur</span> Voir la page <a href="iot.html">objets contraints</a> pour les chiffres.</p></div>
+  <div class="card"><h4>Cryptographie figée</h4><p>Un bootloader en ROM ou sans chemin de mise à jour sûr ne peut pas changer d'algorithme. <span class="badge b-sec">vendeur</span></p></div>
+  <div class="card"><h4>Temps réel</h4><p>Une latence cryptographique variable n'est pas toujours tolérable : un article de vendeur cite un cycle de scrutation d'automate de 10 ms. <span class="badge b-sec">vendeur</span> Les boucles de contrôle vont de la milliseconde à la minute (NIST).</p></div>
+  <div class="card"><h4>Bus de terrain</h4><p>Je n'ai pas trouvé d'étude sur la taille des certificats et des signatures contre la bande passante des bus de terrain. La seule mesure concrète que j'ai est le travail de Bosch sur OPC UA (handshakes plus gros). <span class="badge b-ver">lacune</span></p></div>
+</div>
+<div class="lv2">
+<h3>Pistes citées</h3>
+<ul>
+<li>Un brouillon de l'IETF traite des signatures de firmware (ML-DSA, SLH-DSA, hash à état) pour dispositifs contraints et HSM. <a class="src" href="https://datatracker.ietf.org/doc/html/draft-ietf-pquip-pqc-hsm-constrained-01">IETF</a></li>
+<li>La feuille de route européenne parle d'une « voie de mise à niveau quantum-safe » : même un produit non migré devrait utiliser des signatures PQC pour ses routines de mise à jour.</li>
+<li>Passerelles ou DMZ qui terminent un TLS post-quantique devant des équipements qui ne migrent pas : piste plausible (voir Purdue, niveau 3.5), je n'ai pas de source qui la documente.</li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2 id="reglementation">7. Le calendrier réglementaire européen</h2>
+<div class="tw"><table style="min-width:600px">
+<thead><tr><th>Texte</th><th>Dates et contenu</th><th>Confiance</th></tr></thead>
+<tbody>
+<tr><td>Feuille de route PQC coordonnée de l'UE</td><td>Publiée le 23 juin 2025. 31/12/2026 : premières étapes, feuilles de route nationales, pilotes à haut et moyen risque. 31/12/2030 : cas à haut risque terminés, mises à jour de firmware quantum-safe par défaut. 31/12/2035 : risque moyen terminé, risque faible autant que possible. <strong>Recommandation non contraignante.</strong> <a class="src" href="https://digital-strategy.ec.europa.eu/en/library/coordinated-implementation-roadmap-transition-post-quantum-cryptography">Commission</a></td><td><span class="badge b-prim">primaire</span></td></tr>
+<tr><td>Cyber Resilience Act (règlement 2024/2847)</td><td>Entrée en vigueur le 10/12/2024. Obligations de signalement (art. 14) à partir du 11/09/2026. Application complète le 11/12/2027. <a class="src" href="https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act">Commission</a></td><td><span class="badge b-sec">EUR-Lex non consulté</span></td></tr>
+<tr><td>Directive NIS 2 (2022/2555)</td><td>Transposition due le 17/10/2024 ; la Commission a ouvert des procédures contre 23 États dont la France en novembre 2024. L'article 21(2)(h) impose des politiques sur la cryptographie et, le cas échéant, le chiffrement.</td><td><span class="badge b-sec">secondaire</span></td></tr>
+</tbody></table></div>
+<div class="note piege"><div class="nt">Piège</div><p>Des sites de vendeurs affirment que NIS 2 et le CRA « imposent la crypto-agilité à partir de 2026 avec transition jusqu'en 2030 ». Je n'ai pas pu le confirmer : le mot « agilité » n'apparaît pas dans mes sources sur NIS 2, et l'échéance 2030 vient de la feuille de route non contraignante. Ne le répétez pas sans lire les textes.</p></div>
+</section>
+
+<section>
+<h2 id="conversation">8. Tenir la conversation</h2>
+<div class="grid g2">
+<div class="card"><h4>Ma réponse en 30 secondes</h4>
+<p>« En IT, on migre en quelques années parce qu'on peut mettre à jour. En OT, un équipement dure vingt ans, ne s'arrête pas pour un patch et parle parfois des protocoles sans authentification. La migration post-quantique y commence donc par l'inventaire et par un chemin de mise à jour signé, avant même de parler de chiffrement. »</p></div>
+<div class="card"><h4>Questions à poser</h4>
+<ul>
+<li>Combien de vos équipements peuvent recevoir une mise à jour de firmware signée ?</li>
+<li>Savez-vous quelle cryptographie est dans vos automates ? L'avez-vous inventoriée ?</li>
+<li>Quels accès distants (maintenance, VPN) traversent la DMZ ?</li>
+<li>Quels équipements seront encore en service en 2035 ?</li>
+<li>La crypto est-elle figée en ROM ou remplaçable ?</li>
+</ul></div>
+</div>
+<div class="note piege"><div class="nt">Pièges à éviter</div>
+<ul style="margin:6px 0 0">
+<li>Appliquer tel quel l'inégalité de Mosca à un firmware : elle concerne la confidentialité.</li>
+<li>Dire « l'OT est vulnérable à la PQC » sans distinguer les protocoles : Modbus classique n'a pas de crypto à migrer, DNP3 SAv5 repose sur des MAC symétriques.</li>
+<li>Présenter la feuille de route UE comme une obligation légale : c'est une recommandation.</li>
+</ul></div>
+<p><a class="btn sec" href="iec62443.html">Suite : l'IEC 62443</a> <a class="btn sec" href="conversation.html">Fiches mémo</a></p>
+</section>
+
+<section>
+<h2 id="sources">Sources et niveau de confiance</h2>
+<ul class="src-list two">
+<li><a href="https://csrc.nist.gov/pubs/sp/800/82/r3/final">NIST SP 800-82r3, guide de sécurité OT</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://digital-strategy.ec.europa.eu/en/library/coordinated-implementation-roadmap-transition-post-quantum-cryptography">Feuille de route PQC de l'UE</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://www.cisa.gov/resources-tools/resources/quantum-readiness-migration-post-quantum-cryptography">CISA, NSA, NIST : Quantum-Readiness</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://arxiv.org/abs/2505.15917">Gidney 2025 : RSA-2048 et qubits</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://eprint.iacr.org/2015/1075">Mosca 2015</a> <span class="badge b-prim">primaire (résumé)</span></li>
+<li><a href="https://www.ncsc.gov.uk/guidance/pqc-migration-timelines">NCSC : jalons de migration</a> <span class="badge b-sec">extrait</span></li>
+<li><a href="https://globalriskinstitute.org/publication/quantum-threat-timeline-report-2025b/">Global Risk Institute 2025</a> <span class="badge b-sec">synthèse</span></li>
+<li><a href="https://eprint.iacr.org/2021/1563">PQC dans OPC UA (Bosch)</a> <span class="badge b-sec">secondaire</span></li>
+<li><a href="https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act">Cyber Resilience Act</a> <span class="badge b-sec">EUR-Lex non lu</span></li>
+</ul>
+<div class="note verif"><div class="nt">Limites de cette page</div><p>Les impacts PQC par protocole sont mes inférences. MQTT/Sparkplug, l'ENISA et le règlement Machines ne sont pas traités. La position de l'OPC Foundation sur la PQC n'a pas été trouvée. Les dates CRA et NIS 2 sont à confirmer sur EUR-Lex.</p></div>
+</section>
+
+</article>
+</div>
+</main>
+
+<div id="site-footer"></div>
+<nav id="site-tabbar"></nav>
+<script src="assets/glossary.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tools.js"></script>
+</body>
+</html>

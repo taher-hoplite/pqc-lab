@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IEC 62443 et PQC – PQC Lab</title>
+<meta name="description" content="La série IEC 62443 partie par partie : exigences fondamentales, niveaux de sécurité, zones et conduits, cryptographie, certification, et ce que la norme dit (ou ne dit pas) de la cryptographie post-quantique.">
+<meta name="theme-color" content="#f7f6f2">
+<script>(function(){try{var t=localStorage.getItem('pqc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body data-page="iec">
+<a class="skip" href="#main">Aller au contenu</a>
+<div id="site-header"></div>
+<div id="site-sheet"></div>
+
+<main id="main">
+<div class="wrap">
+  <header class="pagehead">
+    <div class="crumbs"><a href="index.html">Accueil</a> / IEC 62443</div>
+    <div class="eyebrow">Norme de cybersécurité industrielle</div>
+    <h1>IEC 62443 : ce qu'elle exige, et ce qu'elle ne dit pas de la PQC</h1>
+    <p class="lead">La série de référence pour sécuriser les systèmes d'automatisation et de contrôle industriels. Elle structure le dialogue entre exploitants, intégrateurs et fournisseurs, mais elle ne mentionne, à ma connaissance, aucune cryptographie post-quantique.</p>
+    <div class="meta"><span>Lecture : 15 à 25 min selon le niveau</span><span>Mis à jour le 18 novembre 2026</span><span>Normes payantes : formulations normatives non citées</span></div>
+  </header>
+</div>
+
+<div class="wrap page has-toc">
+<aside class="toc" id="toc" aria-label="Sommaire"></aside>
+<article>
+<div id="toc-m"></div>
+
+<section>
+<h2 id="essentiel">L'essentiel</h2>
+<div class="grid g4">
+  <div class="card"><div class="stat">4</div><div class="stat-l">groupes : général, politiques et procédures, système, composant.</div></div>
+  <div class="card"><div class="stat">7</div><div class="stat-l">exigences fondamentales (FR 1 à FR 7).</div></div>
+  <div class="card"><div class="stat">4</div><div class="stat-l">niveaux de sécurité (SL 1 à SL 4), fixés par la force de l'attaquant visé.</div></div>
+  <div class="card"><div class="stat">0</div><div class="stat-l">mention de la PQC dans ce que j'ai pu lire.</div></div>
+</div>
+<div class="note retenir"><div class="nt">À retenir</div>
+<p>L'IEC 62443 est un <strong>cadre de gestion du risque</strong>, pas un catalogue d'algorithmes. Sur la cryptographie, elle renvoie à des standards externes reconnus : c'est par ce chemin que la PQC y entrera. Les normes sont payantes : ce que j'écris sur leur contenu vient de sources secondaires, et je le signale.</p></div>
+<div class="note dire"><div class="nt">À dire en conversation</div>
+<p>« L'IEC 62443 ne liste pas d'algorithmes et, à ma connaissance, ne parle pas encore de PQC. Mais l'exigence sur la cryptographie renvoie à des mécanismes reconnus et à une gestion de clés documentée, donc l'adoption de ML-KEM et de ML-DSA y passera par les standards externes, pas par une révision de la norme. »</p></div>
+</section>
+
+<section>
+<h2 id="roles">1. Qui lit quelle partie</h2>
+<p>La série s'adresse à trois acteurs. Le découpage ci-dessous est un repère général ; vérifiez-le sur le sommaire officiel.</p>
+<div class="grid g3">
+  <div class="card"><h4>Exploitant (asset owner)</h4><p>Il possède et exploite l'installation. Il applique le programme de sécurité (<strong>2-1</strong>), gère les correctifs (<strong>2-3</strong>) et fait l'analyse de risque qui fixe zones et niveaux cibles (<strong>3-2</strong>).</p></div>
+  <div class="card"><h4>Intégrateur et prestataire</h4><p>Il conçoit, installe et maintient le système. Il suit <strong>2-4</strong> (exigences pour prestataires) et conçoit un système qui atteint les niveaux visés (<strong>3-3</strong>).</p></div>
+  <div class="card"><h4>Fournisseur de produits</h4><p>Il fabrique les automates, passerelles et logiciels. Il applique le cycle de développement sécurisé (<strong>4-1</strong>) et les exigences techniques par composant (<strong>4-2</strong>).</p></div>
+</div>
+</section>
+
+<section>
+<h2 id="carte">2. La carte de la série</h2>
+<p>Quatre groupes, numérotés X-Y où X est le groupe. Cliquez sur une partie. Le nombre exact de documents varie de 9 à 14 selon les sources, et je n'ai pas trouvé d'inventaire officiel unique. Les titres et années des parties 1-1, 2-1 à 2-4, 3-1 à 3-3, 4-1 et 4-2 viennent de la <a href="https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards">page de la série sur le site de l'ISA</a> <span class="badge b-prim">source primaire</span>.</p>
+<div class="tool" style="padding:16px"><div id="iec-map" class="im"><div class="im-list"></div><div class="im-det" aria-live="polite"></div></div></div>
+<div class="lv2 note verif"><div class="nt">À vérifier</div><p>Les parties 1-5 et 6-1 viennent de Wikipedia (source secondaire). Les parties 1-2, 1-3, 1-6 et 6-2 n'apparaissent pas comme publiées sur la page ISA : leur statut varie selon les sources. Les titres sont ceux de l'édition ISA, préfixés par « Security for industrial automation and control systems ».</p></div>
+</section>
+
+<section>
+<h2 id="fr">3. Les sept exigences fondamentales</h2>
+<p>Toutes les exigences techniques de 3-3 (SR) et de 4-2 (CR) se rattachent à l'une de ces sept familles. Les intitulés viennent d'un livre blanc Cisco <span class="badge b-sec">secondaire</span>.</p>
+<div class="grid g3">
+  <div class="card"><span class="chip k1">FR 1</span><h4 style="margin-top:8px">Identification et authentification</h4><p>Savoir qui ou quoi se connecte, et le prouver. Contient les SR 1.8 (certificats PKI) et SR 1.9 (robustesse de l'authentification à clé publique).</p></div>
+  <div class="card"><span class="chip k2">FR 2</span><h4 style="margin-top:8px">Contrôle d'usage</h4><p>Faire respecter les droits accordés aux utilisateurs et aux processus.</p></div>
+  <div class="card"><span class="chip k3">FR 3</span><h4 style="margin-top:8px">Intégrité du système</h4><p>Empêcher les modifications non autorisées. Contient SR 3.4 « Software and information integrity ».</p></div>
+  <div class="card"><span class="chip k4">FR 4</span><h4 style="margin-top:8px">Confidentialité des données</h4><p>Protéger l'information. Contient <strong>SR 4.3 « Use of cryptography »</strong>.</p></div>
+  <div class="card"><span class="chip k5">FR 5</span><h4 style="margin-top:8px">Flux de données restreints</h4><p>Segmenter le réseau en zones et contrôler les conduits entre elles.</p></div>
+  <div class="card"><span class="chip k0">FR 6 et FR 7</span><h4 style="margin-top:8px">Réponse aux événements ; disponibilité</h4><p>FR 6 : journaliser, alerter, réagir à temps. FR 7 : rester disponible malgré une attaque ou une panne.</p></div>
+</div>
+<div class="lv2 note piege"><div class="nt">Piège</div><p>L'intitulé de FR 1 est parfois mal recopié (le livre blanc Cisco ajoute « Access Control »). L'abréviation officielle est IAC. Les descriptions courtes ci-dessus sont mes paraphrases, pas des citations de la norme.</p></div>
+</section>
+
+<section>
+<h2 id="niveaux">4. Les niveaux de sécurité</h2>
+<p>Le niveau de sécurité (<abbr class="g" data-g="sl">SL</abbr>) mesure la force de l'attaquant que l'on cherche à contrer. Sélectionnez un niveau. Source : résumé de la série sur Wikipedia <span class="badge b-sec">secondaire</span>.</p>
+<div class="tool" id="sl-picker"><div class="seg" role="group" aria-label="Niveau de sécurité"><button type="button" data-sl="1">SL 1</button><button type="button" data-sl="2">SL 2</button><button type="button" data-sl="3">SL 3</button><button type="button" data-sl="4">SL 4</button></div><div class="sl-out" aria-live="polite"></div></div>
+<div class="note retenir"><div class="nt">À retenir</div><p>Un SL s'évalue <strong>par exigence technique</strong>, pas sur un produit en bloc. Une exigence comme SR 4.3 (cryptographie) doit être satisfaite pour tous les SL-C de 1 à 4, sans amélioration supplémentaire (guide PLCnext, secondaire).</p></div>
+<div class="lv2">
+<h3>SL-T, SL-C et SL-A</h3>
+<div class="tw"><table style="min-width:520px">
+<thead><tr><th>Sigle</th><th>Signification usuelle</th><th>Qui le fixe</th></tr></thead>
+<tbody>
+<tr><td>SL-T</td><td>Niveau cible, issu de l'analyse de risque (3-2)</td><td>Exploitant et intégrateur</td></tr>
+<tr><td>SL-C</td><td>Niveau de capacité : ce que le système (3-3) ou le composant (4-2) peut atteindre</td><td>Fournisseur ou intégrateur</td></tr>
+<tr><td>SL-A</td><td>Niveau atteint, constaté après intégration et mise en service</td><td>Exploitant, intégrateur</td></tr>
+</tbody></table></div>
+<div class="note verif"><div class="nt">À vérifier</div><p>Ces définitions sont la lecture usuelle de la série ; je ne les ai pas reconfirmées sur un texte lu pendant cette session. Les sources lues ne définissaient pas SL-T, SL-C et SL-A explicitement.</p></div>
+</div>
+</section>
+
+<section>
+<h2 id="zones">5. Zones et conduits</h2>
+<p>Une <abbr class="g" data-g="zone">zone</abbr> regroupe des actifs qui partagent les mêmes exigences de sécurité ; un <abbr class="g" data-g="conduit">conduit</abbr> est le canal qui relie deux zones et porte ses propres protections. L'analyse de risque de la partie 3-2 les définit et fixe un niveau cible par zone. <span class="badge b-sec">secondaire</span></p>
+<figure class="fig">
+<div class="zc" aria-label="Exemple illustratif de zones et de conduits">
+  <div class="zone"><span class="chip k1 sltag">SL-T 2</span><h4>Supervision</h4><ul><li>SCADA, IHM</li><li>Serveur d'historique</li></ul></div>
+  <div class="cdt"><i></i>conduit<br>pare-feu, TLS</div>
+  <div class="zone"><span class="chip k3 sltag">SL-T 3</span><h4>Contrôle</h4><ul><li>Automates</li><li>Réseau de contrôle</li></ul></div>
+  <div class="cdt"><i></i>conduit<br>filtré</div>
+  <div class="zone"><span class="chip k5 sltag">SL-T 4</span><h4>Sûreté</h4><ul><li>Système instrumenté de sûreté</li></ul></div>
+</div>
+<figcaption>Exemple <strong>illustratif</strong> : les niveaux cibles ne sont pas ceux d'une installation réelle. Une zone et un conduit ont chacun un SL-T.</figcaption>
+</figure>
+<div class="lv2">
+<h3>Les sept étapes de l'évaluation 3-2 (ZCR 1 à 7)</h3>
+<ol class="steps" style="list-style:none">
+<li><b>Identifier le système sous considération</b>Quels actifs entrent dans le périmètre.</li>
+<li><b>Évaluation initiale du risque</b>Impact et vraisemblance, avant toute mesure.</li>
+<li><b>Partitionner en zones et conduits</b>Regrouper les actifs de même criticité.</li>
+<li><b>Comparer au risque tolérable</b>Le risque initial dépasse-t-il le seuil accepté ?</li>
+<li><b>Évaluation détaillée du risque</b>Menaces, vulnérabilités et mesures existantes, zone par zone.</li>
+<li><b>Documenter les exigences</b>SL-T et exigences de sécurité par zone et conduit.</li>
+<li><b>Faire approuver par le propriétaire</b>Validation par l'exploitant.</li>
+</ol>
+<p class="sub" style="color:var(--fg-3);font-size:.85rem">Source : résumé Wikipedia, secondaire. Le lien avec le modèle de Purdue n'est pas prescrit par la série ; il sert couramment de repère pour dessiner les zones <span class="badge b-ver">non vérifié</span>.</p>
+</div>
+</section>
+
+<section>
+<h2 id="maturite">6. Maturité, développement sécurisé et certification</h2>
+<div class="grid g2">
+  <div class="card"><h4>Niveaux de maturité (ML 1 à 4)</h4><ul style="margin:6px 0 0">
+    <li><strong>ML 1 Initial</strong> : développement souvent ad hoc.</li>
+    <li><strong>ML 2 Géré</strong> : consignes écrites, processus répétables.</li>
+    <li><strong>ML 3 Défini</strong> : pratiqué dans toute l'organisation, avec preuves.</li>
+    <li><strong>ML 4 En amélioration</strong> : métriques et amélioration continue démontrées.</li></ul>
+    <p style="margin-top:10px">Tous les critères d'un niveau doivent être remplis. <span class="badge b-sec">secondaire</span></p></div>
+  <div class="card"><h4>4-1 : le cycle de développement sécurisé</h4><p>Il décrit comment un fournisseur conçoit, teste, corrige et maintient un produit de façon sécurisée (<abbr class="g" data-g="sdl">SDL</abbr>). Selon TÜV SÜD, un niveau de maturité 3 ou 4 est requis pour la certification. <span class="badge b-sec">secondaire</span></p></div>
+</div>
+<h3>Ce qui se certifie (ISASecure)</h3>
+<div class="tw"><table style="min-width:600px">
+<thead><tr><th>Schéma</th><th>Objet</th><th>Norme visée</th></tr></thead>
+<tbody>
+<tr><td>SDLA</td><td>Processus de développement du fournisseur</td><td>62443-4-1</td></tr>
+<tr><td>CSA</td><td>Composants (SDLA est généralement un préalable)</td><td>62443-4-2</td></tr>
+<tr><td>SSA</td><td>Systèmes</td><td>62443-3-3</td></tr>
+<tr><td>ICSA</td><td>Composants IIoT</td><td>Modèle : CSA</td></tr>
+</tbody><caption>Sources : <a href="https://isasecure.org/certification">ISASecure</a>, <a href="https://www.tuvsud.com/en-us/services/testing/iec-62443-certification">TÜV SÜD</a>. Le schéma IECEE CB et les équivalences TÜV ne sont pas vérifiés.</caption></table></div>
+<div class="lv2"><p>L'intérêt commercial d'une certification est d'offrir une preuve d'assurance aux appels d'offres d'exploitants et au regard de la réglementation. C'est une généralité répandue, non sourcée ici <span class="badge b-ver">non vérifié</span>.</p></div>
+</section>
+
+<section>
+<h2 id="crypto">7. La cryptographie dans l'IEC 62443</h2>
+<p>C'est la section qui compte pour la PQC. Les textes de 3-3 et 4-2 sont payants et je ne les ai pas lus. Voici ce que des sources secondaires en disent.</p>
+<div class="grid g2">
+  <div class="card"><h4>SR 4.3, « Use of cryptography » (3-3, FR 4)</h4>
+    <p>Le titre et sa place dans la table des matières d'ISA sont confirmés <span class="badge b-prim">primaire</span>. Elle s'applique à tous les SL-C et n'a pas d'amélioration (<a href="https://engineer.plcnext.help/latest/IEC_FR_SR.htm">PLCnext</a>, secondaire). Un vendeur la résume ainsi : mécanismes cryptographiques pour la confidentialité et l'intégrité, algorithmes approuvés, gestion des clés documentée (<a href="https://www.keyfactor.com/compliance-hub/isa-iec-62443/">Keyfactor</a>).</p></div>
+  <div class="card"><h4>CR 4.3 (4-2, composants)</h4>
+    <p>Un résumé du projet CIP (Linux) décrit les attentes : mécanismes conformes à des standards internationalement reconnus, données protégées au repos et en transit, gestion de clés documentée, algorithmes de hachage et de chiffrement établis, bonnes pratiques de NIST SP 800-57 (<a href="https://2025-cip.readthedocs.io/en/latest/process/use_of_cryptography-cr-4.3.html">CIP</a>, secondaire).</p></div>
+</div>
+<div class="note retenir"><div class="nt">Ce qu'on peut en conclure, et ce qu'on ne peut pas</div>
+<p>Rien de ce que j'ai lu n'indique une <strong>liste d'algorithmes imposée</strong>, ni une <strong>exigence de crypto-agilité</strong>. La norme renvoie à des standards externes (NIST et autres). C'est à confirmer sur le texte payant.</p></div>
+
+<h3>Où la PQC touche les exigences</h3>
+<p>Le tableau ci-dessous relie des exigences connues aux primitives que la PQC remplace. Les exigences viennent de sources secondaires ; <strong>le lien avec la PQC est mon inférence</strong>.</p>
+<div class="tw"><table style="min-width:640px">
+<thead><tr><th>Exigence</th><th>Intitulé</th><th>Primitives concernées par la PQC (inférence)</th></tr></thead>
+<tbody>
+<tr><td>SR 1.8</td><td>Certificats PKI</td><td>Signatures X.509 : RSA et ECDSA vers ML-DSA, FN-DSA ou hybride.</td></tr>
+<tr><td>SR 1.9</td><td>Robustesse de l'authentification à clé publique</td><td>Paires de clés d'authentification des équipements et des utilisateurs.</td></tr>
+<tr><td>SR 3.4</td><td>Intégrité des logiciels et de l'information</td><td>Signatures de firmware et de mises à jour (hash à état, ML-DSA).</td></tr>
+<tr><td>SR 4.3 / CR 4.3</td><td>Utilisation de la cryptographie</td><td>Choix des algorithmes, tailles de clés et gestion de leur cycle de vie.</td></tr>
+</tbody></table></div>
+<div class="lv3 note piege"><div class="nt">Expert : ce qu'il faudrait lire</div><p>Les textes exacts de SR 4.3 et CR 4.3, les exigences de 4-2 sur la mise à jour signée et la gestion des clés, et les exigences de 4-1 sur la gestion des correctifs de sécurité. Ils conditionnent la façon dont un fournisseur justifierait un passage à la PQC dans son dossier de certification.</p></div>
+</section>
+
+<section>
+<h2 id="affirmations">8. Affirmations de vendeurs : vrai ou faux ?</h2>
+<div class="tw"><table style="min-width:640px">
+<thead><tr><th>Affirmation</th><th>Verdict</th><th>Pourquoi</th></tr></thead>
+<tbody>
+<tr><td>« L'IEC 62443 intègre la PQC »</td><td><span class="badge b-ver">invérifiable, probablement faux pour les éditions publiées</span></td><td>Aucune mention de PQC dans les titres, parties ou contenus lus ; aucune position officielle d'ISA, ISA99, IEC TC65 ou ISAGCA trouvée. L'absence de preuve n'est pas une preuve d'absence : un travail en cours reste possible.</td></tr>
+<tr><td>« NIS 2 et le CRA imposent la crypto-agilité à partir de 2026, avec transition jusqu'en 2030 »</td><td><span class="badge b-ver">inexact tel quel</span></td><td>L'échéance 2030 vient de la feuille de route de l'UE, qui est une <strong>recommandation non contraignante</strong>. NIS 2, art. 21(2)(h), impose des politiques sur la cryptographie, sans le mot « agilité » dans mes sources ; l'annexe I du CRA n'a pas été vérifiée.</td></tr>
+</tbody></table></div>
+</section>
+
+<section>
+<h2 id="droit">9. Lien avec le droit européen</h2>
+<div class="grid g2">
+<div class="card"><h4>CRA : calendrier</h4><p>Entré en vigueur le 10/12/2024 ; obligations de signalement (art. 14) à partir du 11/09/2026 ; application complète le 11/12/2027. <a class="src" href="https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act">Commission</a> <span class="badge b-sec">EUR-Lex non lu</span></p></div>
+<div class="card"><h4>Normes harmonisées</h4><p>Un commentaire de juillet 2026 sur la demande de normalisation M/606 indique : série horizontale EN 40000, série verticale prEN 50770 qui s'appuie sur l'IEC 62443 sans que plusieurs de ses parties soient forcément citées au Journal officiel ; aucune norme harmonisée du CRA n'y était citée. Statut de 4-1 et 4-2 vis-à-vis du CRA : <span class="badge b-ver">non trouvé</span> <span class="badge b-sec">site non officiel</span></p></div>
+</div>
+<p class="lv2">La position d'ISAGCA est que toute exigence réglementaire devrait inclure l'ISA/IEC 62443 (<a href="https://gca.isa.org/blog/isagca-release-position-on-cybersecurity-requirements-in-public-policy">ISAGCA</a>). C'est une position de lobbying sectoriel, pas un texte légal.</p>
+</section>
+
+<section>
+<h2 id="acces">10. Accéder au texte</h2>
+<ul>
+<li>Les normes sont <strong>payantes</strong> : PDF vendus par l'ISA (avec un lot remisé hors 2-4), par l'IEC et par l'AFNOR. <span class="badge b-prim">ISA</span> Je n'ai pas vérifié les prix ni l'AFNOR.</li>
+<li>Les membres de l'ISA peuvent consulter la plupart des normes en lecture seule sur Pub Hub, sauf les adoptions IEC identiques.</li>
+<li>L'ISAGCA publie gratuitement un guide de démarrage, un guide des cycles de vie de sécurité et un glossaire.</li>
+</ul>
+</section>
+
+<section>
+<h2 id="conversation">11. Tenir la conversation</h2>
+<div class="grid g2">
+<div class="card"><h4>Ma réponse en 30 secondes</h4>
+<p>« L'IEC 62443 organise la sécurité industrielle autour de zones, de conduits et de niveaux de sécurité, avec des parties pour l'exploitant, l'intégrateur et le fournisseur. Elle exige une cryptographie reconnue et bien gérée, sans imposer d'algorithme. La PQC y entrera donc par les standards externes, et elle pèse surtout sur les exigences de PKI et d'intégrité logicielle. »</p></div>
+<div class="card"><h4>Questions à poser</h4>
+<ul>
+<li>Vos produits sont-ils certifiés ISASecure SDLA ou CSA, et à quel niveau de maturité ?</li>
+<li>Comment l'exigence SR 4.3 est-elle justifiée aujourd'hui dans votre dossier ?</li>
+<li>Y a-t-il un groupe de travail ISA99 ou TC65 sur la PQC ?</li>
+<li>Quel SL-T visez-vous pour vos zones les plus critiques ?</li>
+<li>Comment gérez-vous la mise à jour signée d'un composant déjà certifié ?</li>
+</ul></div>
+</div>
+<div class="note piege"><div class="nt">Pièges à éviter</div>
+<ul style="margin:6px 0 0">
+<li>Dire que la norme « impose » ou « interdit » un algorithme : rien de lu ne le dit.</li>
+<li>Confondre SL-T (cible), SL-C (capacité) et SL-A (atteint).</li>
+<li>Présenter la certification ISASecure comme une obligation légale : ce n'en est pas une.</li>
+<li>Citer la norme mot pour mot : elle est payante, et je n'ai pas pu la lire.</li>
+</ul></div>
+<p><a class="btn sec" href="conversation.html">Réviser avec les fiches mémo</a></p>
+</section>
+
+<section>
+<h2 id="sources">Sources et niveau de confiance</h2>
+<ul class="src-list two">
+<li><a href="https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards">ISA : la série 62443</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://www.isa.org/getmedia/4379f3a1-2687-4a0a-9d0f-20d743233c1b/ISA-62443-3-3_TOC.pdf">ISA : table des matières de 62443-3-3</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://en.wikipedia.org/wiki/IEC_62443">Wikipedia : IEC 62443</a> <span class="badge b-sec">secondaire</span></li>
+<li><a href="https://www.cisco.com/c/en/us/products/collateral/security/isaiec-62443-3-3-wp.html">Cisco : livre blanc 62443-3-3</a> <span class="badge b-sec">secondaire</span></li>
+<li><a href="https://engineer.plcnext.help/latest/IEC_FR_SR.htm">PLCnext : exigences FR et SR</a> <span class="badge b-sec">secondaire</span></li>
+<li><a href="https://2025-cip.readthedocs.io/en/latest/process/use_of_cryptography-cr-4.3.html">CIP : CR 4.3</a> <span class="badge b-sec">secondaire</span></li>
+<li><a href="https://isasecure.org/certification">ISASecure : certification</a> <span class="badge b-sec">secondaire</span></li>
+<li><a href="https://www.tuvsud.com/en-us/services/testing/iec-62443-certification">TÜV SÜD : certification 62443</a> <span class="badge b-sec">secondaire</span></li>
+<li><a href="https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act">Commission : Cyber Resilience Act</a> <span class="badge b-sec">EUR-Lex non lu</span></li>
+</ul>
+<div class="note verif"><div class="nt">Limites de cette page</div><p>Je n'ai lu aucune édition payante de la norme : les formulations normatives de SR 4.3 et CR 4.3, SL-T/C/A, les liens avec Purdue, les parties 1-2 et 1-3 et l'éventuel travail PQC d'ISA99 ou de l'IEC TC65 restent à vérifier. Le contenu de la feuille de route de l'UE est lu ailleurs sur ce site.</p></div>
+</section>
+
+</article>
+</div>
+</main>
+
+<div id="site-footer"></div>
+<nav id="site-tabbar"></nav>
+<script src="assets/glossary.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tools.js"></script>
+</body>
+</html>

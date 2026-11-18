@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PQC sur objets contraints – PQC Lab</title>
+<meta name="description" content="Tailles de clés et de signatures post-quantiques, liens radio, benchmarks sur microcontrôleur, protocoles légers et signature de firmware : ce qui coince sur les objets connectés.">
+<meta name="theme-color" content="#f7f6f2">
+<script>(function(){try{var t=localStorage.getItem('pqc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body data-page="iot">
+<a class="skip" href="#main">Aller au contenu</a>
+<div id="site-header"></div>
+<div id="site-sheet"></div>
+
+<main id="main">
+<div class="wrap">
+  <header class="pagehead">
+    <div class="crumbs"><a href="index.html">Accueil</a> / Objets contraints</div>
+    <div class="eyebrow">Objets connectés et PQC</div>
+    <h1>Ce qui coince vraiment sur un objet contraint</h1>
+    <p class="lead">Une clé ML-KEM-768 pèse 37 fois une clé X25519. Sur un lien radio qui transporte entre 12 et quelques centaines d'octets par trame, ce n'est pas un détail : c'est la contrainte de conception.</p>
+    <div class="meta"><span>Lecture : 15 à 25 min selon le niveau</span><span>Mis à jour le 18 novembre 2026</span><span>Niveau réglable dans « Affichage »</span></div>
+  </header>
+</div>
+
+<div class="wrap page has-toc">
+<aside class="toc" id="toc" aria-label="Sommaire"></aside>
+<article>
+<div id="toc-m"></div>
+
+<section>
+<h2 id="essentiel">L'essentiel en six chiffres</h2>
+<div class="grid g3">
+  <div class="card"><div class="stat">1 184<small>octets</small></div><div class="stat-l">Clé publique ML-KEM-768, contre 32 pour X25519. <a class="src" href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-kyber-certificates">IETF</a></div></div>
+  <div class="card"><div class="stat">3 309<small>octets</small></div><div class="stat-l">Signature ML-DSA-65, contre 64 pour Ed25519. <a class="src" href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-dilithium-certificates">IETF</a></div></div>
+  <div class="card"><div class="stat">≈ 27<small>ms</small></div><div class="stat-l">Encapsulation ML-KEM-768 sur Cortex-M4 à 24 MHz (658 754 cycles). <a class="src" href="https://github.com/mupq/pqm4">pqm4</a></div></div>
+  <div class="card"><div class="stat">2,8 – 6,3<small>KiB</small></div><div class="stat-l">Pile de ML-KEM-768 selon l'implémentation (pile minimale ou vitesse).</div></div>
+  <div class="card"><div class="stat">6,5 – 67<small>KiB</small></div><div class="stat-l">Pile pour signer en ML-DSA-65, selon l'implémentation. Classe 1 : environ 10 KiB de RAM au total.</div></div>
+  <div class="card"><div class="stat">101 – 242<small>octets</small></div><div class="stat-l">Un échange EDHOC complet aujourd'hui. Le seul chiffré ML-KEM-512 en fait 768. <a class="src" href="https://www.rfc-editor.org/rfc/rfc9528.html">RFC 9528</a></div></div>
+</div>
+<div class="note retenir"><div class="nt">À retenir</div>
+<p>Le coût de la PQC sur un objet connecté se paie sur trois ressources à la fois : <strong>la bande passante</strong> (clés et signatures bien plus grosses), <strong>la mémoire</strong> (surtout la pile pour signer) et <strong>l'énergie</strong> (radio et calcul). La bande passante est souvent la plus sévère, parce que les trames radio sont minuscules.</p></div>
+<div class="note dire"><div class="nt">À dire en conversation</div>
+<p>« Le problème n'est pas que le calcul soit lent : ML-KEM est rapide, quelques dizaines de millisecondes sur un Cortex-M4. Le problème, c'est la taille des clés et des signatures face à des liens radio de quelques dizaines d'octets, et la RAM nécessaire pour signer. »</p></div>
+</section>
+
+<section>
+<h2 id="classes">1. Ce qu'on appelle « contraint »</h2>
+<p>La RFC 7228 classe les dispositifs contraints en trois catégories d'ordre de grandeur, pas en frontières strictes <a class="src" href="https://www.rfc-editor.org/rfc/rfc7228.html">RFC 7228</a> <span class="badge b-prim">source primaire</span>.</p>
+<div class="tw"><table>
+<thead><tr><th>Classe</th><th class="n">RAM</th><th class="n">Flash</th><th>Ce que ça permet</th></tr></thead>
+<tbody>
+<tr><td>Classe 0</td><td class="n">≪ 10 KiB</td><td class="n">≪ 100 KiB</td><td>Capteurs très simples ; en général sans pile IP complète.</td></tr>
+<tr><td>Classe 1</td><td class="n">≈ 10 KiB</td><td class="n">≈ 100 KiB</td><td>Peut parler CoAP et une sécurité légère ; hors de portée d'un TLS classique complet.</td></tr>
+<tr><td>Classe 2</td><td class="n">≈ 50 KiB</td><td class="n">≈ 250 KiB</td><td>Pile protocolaire plus complète, mais les ressources restent comptées.</td></tr>
+</tbody></table></div>
+<p class="lv2">Un microcontrôleur Cortex-M4 courant, qui sert de référence aux benchmarks de la section 5, dispose typiquement de quelques dizaines à quelques centaines de KiB de RAM : il est donc plus riche qu'un capteur de classe 1. Beaucoup de produits de masse choisissent pourtant la classe 1 pour le coût et la consommation.</p>
+<div class="note piege lv2"><div class="nt">Piège</div><p>Les benchmarks publiés tournent presque toujours sur un MCU de développement confortable. Sur un composant de classe 1 déployé à des millions d'exemplaires, la même implémentation peut ne pas tenir. Demandez toujours la <em>pile</em>, pas seulement les cycles.</p></div>
+</section>
+
+<section>
+<h2 id="tailles">2. Combien d'octets ?</h2>
+<p>Voici les tailles de référence, en octets. Les valeurs ML-KEM, ML-DSA et SLH-DSA viennent des tables des RFC de l'IETF qui reprennent les FIPS 203, 204 et 205. <span class="badge b-prim">source primaire via IETF</span></p>
+<div class="tw"><table id="sizes-table" style="min-width:560px">
+<thead><tr><th>Algorithme</th><th>Type</th><th class="n">Clé publique</th><th class="n">Clé secrète</th><th class="n">Chiffré / signature</th></tr></thead>
+<tbody></tbody>
+<caption>« Clé secrète » = forme étendue quand la graine seule n'est pas utilisée. « — » : non vérifié dans cette session. Falcon : tailles moyennes de la forme compressée ; la forme à taille fixe est plus grande. Classiques : valeurs standard connues, non re-sourcées.</caption>
+</table></div>
+<div class="note retenir"><div class="nt">À retenir</div><p>L'ordre de grandeur : <strong>×30 à ×40</strong> pour l'échange de clés (ML-KEM-768 contre X25519), <strong>×50</strong> pour une signature ML-DSA-65 contre Ed25519. Les signatures compactes existent (FN-DSA, environ 666 octets) mais FIPS 206 est encore un projet, et les signatures à base de hash vont de 7,8 à près de 50 Kio.</p></div>
+<div class="lv2">
+<h3>Pourquoi tant d'octets ?</h3>
+<p>Les schémas à base de réseaux euclidiens reposent sur des objets algébriques de grande dimension (des vecteurs de polynômes). Une clé publique est une matrice bruitée ou sa graine plus un vecteur ; un chiffré en est une transformation. Les courbes elliptiques cachent beaucoup plus d'information dans un point de 32 octets, d'où l'écart.</p>
+</div>
+<div class="lv3">
+<h3>Détails d'expert</h3>
+<ul>
+<li>Falcon est un cas à part : signatures courtes, mais échantillonnage gaussien en arithmétique flottante, difficile à protéger contre les canaux auxiliaires. Les mesures pqm4 donnent 67,7 millions de cycles pour la génération de clés Falcon-512 sur Cortex-M4 et près de 104 KiB de code.</li>
+<li>SLH-DSA offre un compromis : les variantes « s » (small) signent peu d'octets mais lentement ; les variantes « f » (fast) sont plus rapides mais plus lourdes en octets.</li>
+<li>Les tailles de certificats X.509 ajoutent un surcoût de quelques centaines d'octets par certificat en plus de la clé et de la signature. L'outil ci-dessous ne compte que les octets cryptographiques bruts.</li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2 id="liens">3. Les liens radio : l'autre moitié du problème</h2>
+<div class="tw"><table style="min-width:620px">
+<thead><tr><th>Lien</th><th class="n">Charge utile typique</th><th>Source et réserve</th></tr></thead>
+<tbody>
+<tr><td>IEEE 802.15.4</td><td class="n">81 o max après MAC, AES-CCM-128</td><td>Trame PHY de 127 o, 25 o de surcharge MAC, 21 o de chiffrement MAC. <a class="src" href="https://datatracker.ietf.org/doc/html/rfc4944">RFC 4944</a> <span class="badge b-prim">primaire</span>. Avec 6LoWPAN et UDP : environ 60 à 70 o, <strong>estimation</strong>.</td></tr>
+<tr><td>BLE par défaut</td><td class="n">20 o</td><td>MTU ATT de 23 octets. <a class="src" href="https://punchthrough.com/ble-att-mtu-throughput/">Punch Through</a> <span class="badge b-sec">secondaire</span></td></tr>
+<tr><td>BLE, longueur de données étendue</td><td class="n">≈ 244 o</td><td>MTU 247 recommandé ; décompte des en-têtes variable selon les sources. <span class="badge b-sec">secondaire</span></td></tr>
+<tr><td>LoRaWAN EU868</td><td class="n">51 / 115 / 222 o</td><td>DR0 à DR2 : 51 ; DR3 : 115 ; DR4 à DR7 : 222. <a class="src" href="https://lora-developers.semtech.com/library/tech-papers-and-guides/the-book/packet-size-considerations">Semtech</a> <span class="badge b-sec">secondaire</span> ; document officiel RP002 non lu ; DR8 à DR11 contradictoires.</td></tr>
+<tr><td>Sigfox</td><td class="n">12 o</td><td>Montant : 12 o, 140 messages par jour ; descendant : 8 o. <a class="src" href="https://www.rfc-editor.org/rfc/rfc9442.html">RFC 9442</a> <span class="badge b-sec">secondaire</span></td></tr>
+<tr><td>NB-IoT / LTE-M</td><td class="n">—</td><td><span class="badge b-ver">non trouvé</span> Les sources se contredisent (1 280 ou 1 600 o recommandés) ; je n'ai pas de chiffre 3GPP fiable.</td></tr>
+</tbody></table></div>
+<div class="note piege"><div class="nt">Piège</div><p>Les « 70 octets » de 802.15.4 avec 6LoWPAN et UDP sont <strong>mon estimation</strong> à partir de la RFC 4944. La valeur exacte dépend de la compression d'en-têtes et du chiffrement choisis. L'outil ci-dessous vous laisse comparer plusieurs liens.</p></div>
+</section>
+
+<section>
+<h2 id="outil-tailles">4. Outil : combien de trames pour un handshake ?</h2>
+<div class="tool" id="tool-sizes">
+<div class="tool-h"><h3>Explorateur de tailles et de fragmentation</h3><span class="tag">Interactif</span></div>
+<p class="sub" style="color:var(--fg-3);margin:0">Choisissez un KEM, une signature, une chaîne de certificats et un lien radio. L'outil additionne les <strong>octets cryptographiques bruts</strong> d'un handshake authentifié (clé publique et chiffré du KEM, signatures, clés publiques des certificats), sans les en-têtes de protocole.</p>
+<div class="ctl">
+  <div><label for="sz-kem">Échange de clés (KEM)</label><select id="sz-kem"></select></div>
+  <div><label for="sz-sig">Signature</label><select id="sz-sig"></select></div>
+  <div><label for="sz-chain">Chaîne envoyée : <span id="sz-chain-v"></span></label><input id="sz-chain" type="range" min="0" max="3" step="1" value="1"></div>
+  <div><label for="sz-link">Lien radio</label><select id="sz-link"></select></div>
+</div>
+<div class="out">
+  <div class="cell"><b id="sz-total">—</b><span>octets crypto, cette configuration</span></div>
+  <div class="cell"><b id="sz-base">—</b><span>octets crypto, même chaîne en classique</span></div>
+  <div class="cell"><b id="sz-mult">—</b><span>facteur</span></div>
+  <div class="cell"><b id="sz-frames">—</b><span id="sz-frames-c">trames</span></div>
+</div>
+<div class="bars" id="sz-bars"></div>
+<div class="legend"><span><i style="background:var(--accent-2)"></i>post-quantique</span><span><i style="background:var(--accent)"></i>classique équivalent</span></div>
+<div class="verdict mid" id="sz-verdict"></div>
+<p class="sub" style="color:var(--fg-3);font-size:.82rem;margin:12px 0 0">Modèle : un handshake de type TLS 1.3 avec authentification du serveur envoie une clé publique KEM, reçoit un chiffré, puis n certificats (chacun avec une clé publique et la signature de son émetteur) et une signature de preuve de possession. La racine n'est pas envoyée. Les retransmissions, la fragmentation propre au protocole et les en-têtes ne sont pas comptés : le résultat est un <em>minimum</em>.</p>
+</div>
+<div class="note dire"><div class="nt">À dire en conversation</div><p>« Pour un handshake avec un certificat feuille, ML-DSA-65 et ML-KEM-768, il faut environ 10,8 Kio de cryptographie brute. Sur 802.15.4, avec environ 70 octets utiles par trame, ça fait environ 155 trames pour un seul handshake, contre 4 en classique. »</p></div>
+<div class="lv2 note piege"><div class="nt">Vérifiez avant de citer</div><p>Calcul : 1 184 + 1 088 (KEM) + 2 × 3 309 (deux signatures) + 1 952 (une clé publique) = 10 842 octets pour un certificat feuille ; avec <em>zéro</em> certificat (clé connue du pair), 1 184 + 1 088 + 3 309 = 5 581 octets. Utilisez l'outil pour retrouver chaque cas.</p></div>
+</section>
+
+<section>
+<h2 id="calcul">5. Temps, pile et code sur Cortex-M4</h2>
+<p>Le projet <strong>pqm4</strong> mesure des implémentations de la PQC sur un ARM Cortex-M4 (STM32F4). Les chiffres ci-dessous viennent de sa page de benchmarks : moyennes de cycles, pile maximale et taille du code, à 24 MHz. <a class="src" href="https://github.com/mupq/pqm4">pqm4</a> <span class="badge b-prim">source primaire</span> Le dépôt annonce son archivage en lecture seule à partir de janvier 2027.</p>
+<div class="tool" id="tool-bench">
+<div class="tool-h"><h3>Durées selon la fréquence et la RAM disponible</h3><span class="tag">Interactif</span></div>
+<div class="ctl">
+  <div><label for="bn-mhz">Fréquence du microcontrôleur : <span id="bn-mhz-v"></span></label><input id="bn-mhz" type="range" min="8" max="200" step="1" value="24"></div>
+  <div><label for="bn-ram">Budget de pile</label><select id="bn-ram"><option value="10240">Classe 1 : ≈ 10 KiB de RAM au total</option><option value="51200">Classe 2 : ≈ 50 KiB de RAM au total</option><option value="inf">Illimité</option></select></div>
+</div>
+<div class="tw" style="margin:0"><table style="min-width:760px">
+<thead><tr><th>Schéma et implémentation</th><th class="n">Génération de clés</th><th class="n">Encaps. / signature</th><th class="n">Décaps. / vérification</th><th class="n">Pile max</th><th class="n">Code</th><th>Tient ?</th></tr></thead>
+<tbody id="bn-body"></tbody>
+<caption>Durées calculées : cycles ÷ fréquence. « Tient ? » compare la <em>pile seule</em> au budget choisi, sans compter le reste du firmware. Les signatures ML-DSA et SLH-DSA varient d'une exécution à l'autre (échantillonnage par rejet).</caption>
+</table></div>
+</div>
+<div class="lv2">
+<h3>Ce que les chiffres montrent</h3>
+<ul>
+<li><strong>ML-KEM est léger.</strong> En version rapide, les trois opérations de ML-KEM-768 tournent à moins de 710 000 cycles, soit moins de 30 ms à 24 MHz. En version à pile minimale, la pile descend à environ 2,8 KiB pour environ 1 % de cycles en plus.</li>
+<li><strong>ML-DSA est gourmand en RAM.</strong> ML-DSA-65 en version rapide signe avec environ 67 KiB de pile ; la variante à pile minimale la ramène à environ 6,5 KiB au prix d'une signature environ quatre fois plus lente (24,4 millions de cycles contre 6,2 millions).</li>
+<li><strong>Falcon vérifie très vite et génère très lentement.</strong> Vérification : environ 400 000 cycles ; génération de clés : environ 68 millions de cycles. La signature et la génération sont variables.</li>
+<li><strong>SLH-DSA vérifie raisonnablement mais signe lentement.</strong> Pour SLH-DSA-128s : signature en milliards de cycles, vérification en 7,5 millions. À réserver à la signature hors ligne.</li>
+</ul>
+</div>
+<div class="lv3 note piege"><div class="nt">Réserves sur ces mesures</div><p>La page ne précise pas la date de mesure ni explicitement que la colonne est la pile ; c'est la lecture usuelle. Les nombres d'exécutions diffèrent : 10 pour ML-KEM, SLH-DSA et Falcon, 1 000 pour ML-DSA. Falcon y apparaît sous le nom provisoire <code>fndsa_provisional</code>. Les performances dépendent aussi de l'assembleur utilisé : l'implémentation optimisée de ML-KEM est environ 1,5 fois plus rapide que le C de référence.</p></div>
+
+<h3 id="energie">Énergie</h3>
+<p class="lv2">Une étude sur RP2040 (Cortex-M0+, 125 MHz) annonce ML-KEM-512 complet (génération, encapsulation, décapsulation) en 35,7 ms, soit environ 2,8 mJ, et environ 17 fois plus rapide qu'ECDH P-256. <a class="src" href="https://arxiv.org/html/2603.19340">arXiv 2603.19340</a> <span class="badge b-sec">secondaire</span></p>
+<div class="note verif lv2"><div class="nt">À vérifier</div><p>L'énergie y est <strong>modélisée</strong> (puissance constante tirée de la fiche technique), pas mesurée. Je n'ai trouvé aucune mesure d'énergie ML-KEM contre X25519 sur Cortex-M4. N'utilisez ce chiffre que comme ordre de grandeur.</p></div>
+</section>
+
+<section>
+<h2 id="protocoles">6. Protocoles légers</h2>
+<p>Un protocole d'authentification pour objets contraints ne doit pas multiplier les octets. Le plus avancé aujourd'hui est <abbr class="g" data-g="edhoc">EDHOC</abbr>, normalisé dans la RFC 9528.</p>
+<div class="tw"><table style="min-width:560px">
+<thead><tr><th>Type d'authentification</th><th class="n">Message 1</th><th class="n">Message 2</th><th class="n">Message 3</th><th class="n">Total</th></tr></thead>
+<tbody>
+<tr><td>Clés DH statiques, identifiant kid</td><td class="n">37</td><td class="n">45</td><td class="n">19</td><td class="n"><strong>101</strong></td></tr>
+<tr><td>Clés DH statiques, x5t</td><td class="n">37</td><td class="n">58</td><td class="n">33</td><td class="n"><strong>128</strong></td></tr>
+<tr><td>Clés de signature, kid</td><td class="n">37</td><td class="n">102</td><td class="n">77</td><td class="n"><strong>216</strong></td></tr>
+<tr><td>Clés de signature, x5t</td><td class="n">37</td><td class="n">115</td><td class="n">90</td><td class="n"><strong>242</strong></td></tr>
+</tbody><caption>Octets, tableau 1 de la RFC 9528. <a class="src" href="https://www.rfc-editor.org/rfc/rfc9528.html">RFC 9528</a> source primaire</caption></table></div>
+<div class="note retenir"><div class="nt">À retenir</div><p>Un seul chiffré ML-KEM-512 (768 octets) fait déjà <strong>plus de 3 fois</strong> la taille d'un échange EDHOC complet avec signatures (242 octets au maximum) et <strong>plus de 7 fois</strong> celle de la version à clés Diffie-Hellman statiques (101 octets). Une version post-quantique d'EDHOC ne peut donc pas être un simple remplacement : elle impose une refonte.</p></div>
+<div class="lv2">
+<h3>Où en est la normalisation</h3>
+<ul>
+<li><strong>EDHOC post-quantique</strong> : le groupe IETF LAKE a des brouillons d'authentification par KEM (<code>draft-ietf-lake-authkem-edhoc</code>) et de suites post-quantiques (<code>draft-ietf-lake-pqsuites</code>, qui cible ML-KEM-512 et ML-DSA-44). Ce sont des <strong>brouillons</strong>, sans tailles de messages publiées dans ce que j'ai lu. <span class="badge b-sec">secondaire</span></li>
+<li><strong>COSE</strong> : un brouillon définit ML-DSA pour JOSE et COSE (<code>draft-ietf-cose-dilithium</code>), statut actuel non confirmé. ML-KEM pour COSE : non trouvé. <span class="badge b-ver">à vérifier</span></li>
+<li><strong>Certificats X.509</strong> : les pages des brouillons de l'IETF indiquent que ML-DSA et ML-KEM sont publiés en RFC 9881 et RFC 9935.</li>
+<li><strong>TLS hybride</strong> : X25519 + ML-KEM-768 utilise le point de code 4588 (0x11EC) ; les parts d'échange font 1 216 octets côté client et 1 120 octets côté serveur (1 184 + 32 et 1 088 + 32). La page de l'IETF le liste comme publié en RFC 10024 ; je ne l'ai pas confirmé auprès du RFC Editor. <a class="src" href="https://datatracker.ietf.org/doc/draft-ietf-tls-ecdhe-mlkem/">IETF</a></li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2 id="firmware">7. Signature de firmware et démarrage sécurisé</h2>
+<p>C'est le cas d'usage où la PQC devient la plus urgente sur les objets : un firmware signé aujourd'hui peut rester vérifié pendant vingt ans, et un équipement déployé ne peut pas toujours changer son algorithme de vérification.</p>
+<div class="grid g2">
+  <div class="card"><h4>Signatures à base de hash (LMS, XMSS)</h4><p>Standardisées par le NIST dans la SP 800-208 depuis octobre 2020. <a class="src" href="https://csrc.nist.gov/pubs/sp/800/208/final">NIST</a> <span class="badge b-prim">primaire</span> Exemple LMS_SHA256_M32_H10 avec LMOTS W8 : clé publique de 56 octets, signature de 1 452 octets. <a class="src" href="https://datatracker.ietf.org/doc/html/rfc8554">RFC 8554</a></p></div>
+  <div class="card"><h4>Le défaut : l'état</h4><p>Une clé à usage unique ne doit jamais signer deux fois, sous peine de perdre la sécurité. La signature doit donc être faite dans un environnement contrôlé, typiquement un HSM, pas sur l'objet.</p></div>
+</div>
+<div class="note dire"><div class="nt">Raisonnement, pas une source</div><p>On privilégie souvent le hachage pour le firmware parce que la sécurité ne repose que sur des hypothèses sur les fonctions de hachage, que la vérification est légère en code et en RAM, et que la signature se fait hors ligne. C'est ma lecture des propriétés ; je n'ai pas trouvé de source qui les énonce ainsi.</p></div>
+<div class="lv2">
+<h3>Ce que disent les textes officiels</h3>
+<ul>
+<li><strong>Feuille de route européenne (23 juin 2025)</strong> : recommande de sécuriser tôt les mises à jour de logiciels et de firmware avec des signatures post-quantiques, y compris pour un produit non migré (« voie de mise à niveau »). Elle fixe fin 2030 pour des mises à jour quantum-safe par défaut. <a class="src" href="https://digital-strategy.ec.europa.eu/en/library/coordinated-implementation-roadmap-transition-post-quantum-cryptography">Commission</a> <span class="badge b-prim">primaire</span> Recommandation non contraignante.</li>
+<li><strong>CNSA 2.0 (NSA)</strong> : n'approuve que LMS et XMSS (pas leurs variantes multi-arbres) pour la signature de firmware. Les dates d'obligation divergent selon les sources secondaires (2030 ou 2033). <span class="badge b-ver">non résolu</span> Lisez la FAQ officielle.</li>
+<li><strong>Contrainte matérielle</strong> : un bootloader en ROM, immuable, ne peut pas changer d'algorithme. Des sources de vendeurs le citent comme risque majeur. <span class="badge b-sec">secondaire</span></li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2 id="attaques">8. Attaques physiques : l'implémentation compte autant que les maths</h2>
+<div class="card"><h4>KyberSlash : un exemple concret</h4>
+<p>Une division dont la durée dépend du secret dans des implémentations de Kyber permettait, par une simple mesure de temps, de récupérer la clé. Démontré sur Cortex-M4 et Cortex-A7 : clé Kyber-768 retrouvée en moins de 4 minutes, 10 essais sur 10, avec 6 144 chiffrés envoyés. Les bibliothèques ont été corrigées après divulgation. <a class="src" href="https://eprint.iacr.org/2024/1049">ePrint 2024/1049</a> <a class="src" href="https://tches.iacr.org/index.php/TCHES/article/view/12046">TCHES 2025</a> <span class="badge b-prim">primaire</span></p></div>
+<div class="lv2 note retenir"><div class="nt">À retenir</div><p>Les standards décrivent des algorithmes, pas des implémentations sûres. Une implémentation conforme peut fuir. Sur objet physiquement accessible, il faut du code à temps constant et, pour certaines menaces, du <abbr class="g" data-g="masquage">masquage</abbr>.</p></div>
+<div class="lv3">
+<h3>Masquage : ce qu'on sait et ce qu'on ignore</h3>
+<ul>
+<li>Un ePrint de 2026 annonce environ 25 % de surcoût pour une approche de brassage fin du premier ordre sur la décapsulation ML-KEM-768 en Cortex-M4, contre 51 % pour une approche bit à bit. <span class="badge b-ver">un seul extrait de recherche, texte non lu, identifiant à confirmer</span> <a class="src" href="https://eprint.iacr.org/2026/934">ePrint 2026/934</a></li>
+<li>Un exposé de CRYPTO 2025 indique qu'un port masqué de ML-DSA sur Cortex-M3/M4 a été attaqué. <span class="badge b-sec">secondaire</span></li>
+<li>Je n'ai pas trouvé de chiffre de surcoût pour le masquage de ML-DSA, ni de détails sur les attaques par consommation ou électromagnétiques sur la NTT, ni sur les attaques par fautes : ne citez rien là-dessus sans lire les articles.</li>
+</ul>
+</div>
+</section>
+
+<section>
+<h2 id="conversation">9. Tenir la conversation</h2>
+<div class="grid g2">
+<div class="card"><h4>Ma réponse en 30 secondes</h4>
+<p>« Sur un objet contraint, la PQC pose un problème de ressources avant d'être un problème de sécurité. Le calcul est raisonnable : ML-KEM tourne en une trentaine de millisecondes sur un Cortex-M4. Mais les clés et les signatures sont des dizaines de fois plus grosses, ce qui explose la fragmentation sur des liens de quelques dizaines d'octets, et signer en ML-DSA exige beaucoup de RAM. »</p></div>
+<div class="card"><h4>Questions à poser</h4>
+<ul>
+<li>Quelle classe de dispositif visez-vous, et avec quelle pile disponible ?</li>
+<li>Sur quel lien radio, et avec quelle charge utile par trame ?</li>
+<li>Le firmware est-il signé par une clé à état, et qui la garde ?</li>
+<li>Avez-vous mesuré l'énergie, pas seulement les cycles ?</li>
+<li>L'implémentation est-elle à temps constant, et a-t-elle été évaluée contre les canaux auxiliaires ?</li>
+</ul></div>
+</div>
+<div class="note piege"><div class="nt">Pièges à éviter</div>
+<ul style="margin:6px 0 0">
+<li>Dire que « la PQC est trop lente » : le calcul n'est pas le goulot, la taille l'est.</li>
+<li>Citer des tailles ou des durées sans nommer la variante : ML-KEM-512, 768 et 1024 diffèrent du simple au double.</li>
+<li>Oublier que les benchmarks mesurent un MCU confortable, pas un composant de classe 1.</li>
+</ul></div>
+<p><a class="btn sec" href="conversation.html">Réviser avec les fiches mémo</a></p>
+</section>
+
+<section>
+<h2 id="sources">Sources et niveau de confiance</h2>
+<ul class="src-list two">
+<li><a href="https://www.rfc-editor.org/rfc/rfc7228.html">RFC 7228 : terminologie des dispositifs contraints</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc4944">RFC 4944 : IPv6 sur IEEE 802.15.4</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://github.com/mupq/pqm4">pqm4 : benchmarks Cortex-M4</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc9528.html">RFC 9528 : EDHOC</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-kyber-certificates">Tailles ML-KEM (IETF)</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-dilithium-certificates">Tailles ML-DSA (IETF)</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://csrc.nist.gov/pubs/sp/800/208/final">NIST SP 800-208 (LMS, XMSS)</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc8554">RFC 8554 : LMS</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://eprint.iacr.org/2024/1049">KyberSlash (ePrint 2024/1049)</a> <span class="badge b-prim">primaire</span></li>
+<li><a href="https://falcon-sign.info/">Falcon : tailles</a> <span class="badge b-sec">secondaire</span></li>
+<li><a href="https://lora-developers.semtech.com/library/tech-papers-and-guides/the-book/packet-size-considerations">LoRaWAN : taille des paquets</a> <span class="badge b-sec">secondaire</span></li>
+<li><a href="https://arxiv.org/html/2603.19340">Étude énergétique RP2040</a> <span class="badge b-sec">secondaire</span></li>
+</ul>
+<div class="note verif"><div class="nt">Limites de cette page</div><p>Les tailles ML-KEM/ML-DSA/SLH-DSA viennent de RFC de l'IETF qui reprennent les FIPS ; je n'ai pas pu lire directement les PDF du NIST. Les valeurs classiques sont des valeurs standard non re-sourcées. FIPS 206 (FN-DSA) n'est pas confirmé comme publié. NB-IoT, LoRaWAN DR8 à DR11 et les chiffres de masquage restent à vérifier.</p></div>
+</section>
+
+</article>
+</div>
+</main>
+
+<div id="site-footer"></div>
+<nav id="site-tabbar"></nav>
+<script src="assets/glossary.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tools.js"></script>
+</body>
+</html>

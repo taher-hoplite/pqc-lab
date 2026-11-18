@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prêt à parler – PQC Lab</title>
+<meta name="description" content="Pitchs de 30 secondes, chiffres à connaître, questions difficiles, fiches mémo et glossaire pour tenir une conversation d'expert sur la PQC, l'IoT, l'OT et l'IEC 62443.">
+<meta name="theme-color" content="#f7f6f2">
+<script>(function(){try{var t=localStorage.getItem('pqc-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body data-page="talk">
+<a class="skip" href="#main">Aller au contenu</a>
+<div id="site-header"></div>
+<div id="site-sheet"></div>
+
+<main id="main">
+<div class="wrap">
+  <header class="pagehead">
+    <div class="crumbs"><a href="index.html">Accueil</a> / Prêt à parler</div>
+    <div class="eyebrow">Préparer une conversation d'expert</div>
+    <h1>Prêt à parler</h1>
+    <p class="lead">Pour chaque sujet : un pitch de 30 secondes, les chiffres à connaître, les questions difficiles avec leurs réponses, et ce que vous ne savez pas encore. Puis des fiches mémo à réviser.</p>
+    <div class="cta"><button type="button" class="btn sec" onclick="window.print()">Imprimer ou enregistrer en PDF</button></div>
+  </header>
+</div>
+
+<div class="wrap page has-toc">
+<aside class="toc" id="toc" aria-label="Sommaire"></aside>
+<article>
+<div id="toc-m"></div>
+
+<section>
+<h2 id="pitchs">1. Les pitchs, par sujet</h2>
+<div data-tabs>
+<div class="tabs" role="tablist" aria-label="Sujet">
+  <button type="button" role="tab" id="t-iot" aria-selected="true" aria-controls="p-iot">Objets contraints</button>
+  <button type="button" role="tab" id="t-ot" aria-selected="false" aria-controls="p-ot">OT vs IT</button>
+  <button type="button" role="tab" id="t-iec" aria-selected="false" aria-controls="p-iec">IEC 62443</button>
+  <button type="button" role="tab" id="t-gen" aria-selected="false" aria-controls="p-gen">Fondamentaux PQC</button>
+</div>
+
+<!-- IOT -->
+<div class="tabpanel" id="p-iot" role="tabpanel" aria-labelledby="t-iot">
+  <div class="card"><h3>30 secondes</h3><p>« Sur un objet contraint, la PQC pose un problème de ressources avant d'être un problème de sécurité. Le calcul est raisonnable : ML-KEM tourne en une trentaine de millisecondes sur un Cortex-M4. Mais clés et signatures sont des dizaines de fois plus grosses, ce qui explose la fragmentation sur des liens de quelques dizaines d'octets, et signer en ML-DSA exige beaucoup de RAM. »</p></div>
+  <details><summary>Version de 2 minutes</summary>
+  <p>Je distingue trois contraintes. La <strong>bande passante</strong> : une clé ML-KEM-768 fait 1 184 octets contre 32 pour X25519, une signature ML-DSA-65 fait 3 309 octets contre 64 pour Ed25519. Sur 802.15.4, avec environ 70 octets utiles par trame, un seul handshake authentifié représente plus de cent trames. La <strong>mémoire</strong> : ML-KEM-768 tient en 3 à 6 Kio de pile, mais ML-DSA-65 en version rapide en demande environ 67, alors qu'un composant de classe 1 a environ 10 Kio de RAM en tout. Il existe une variante à pile minimale, quatre fois plus lente. L'<strong>implémentation</strong> : une division dépendant du secret a permis de casser une clé Kyber en moins de quatre minutes sur Cortex-M4 (KyberSlash). Pour le firmware, on regarde plutôt les signatures à base de hash (LMS), standardisées par le NIST depuis 2020, à condition de bien gérer l'état.</p></details>
+  <h3>Chiffres à connaître</h3>
+  <div class="grid g4">
+    <div class="card"><div class="stat">1 184</div><div class="stat-l">octets, clé publique ML-KEM-768 (32 en X25519)</div></div>
+    <div class="card"><div class="stat">3 309</div><div class="stat-l">octets, signature ML-DSA-65 (64 en Ed25519)</div></div>
+    <div class="card"><div class="stat">≈ 10</div><div class="stat-l">KiB de RAM en classe 1 (RFC 7228)</div></div>
+    <div class="card"><div class="stat">101–242</div><div class="stat-l">octets, un échange EDHOC complet</div></div>
+  </div>
+  <h3>Questions difficiles</h3>
+  <details><summary>« ML-KEM est rapide, où est le problème ? »</summary><p>Le calcul n'est pas le goulot : la taille l'est. Avec ML-KEM-768, la clé publique (1 184 o) et le chiffré (1 088 o) imposent environ 17 trames puis 16 trames sur un lien à 70 octets utiles. L'énergie radio dépasse alors celle du calcul.</p></details>
+  <details><summary>« ML-DSA ou Falcon pour signer un firmware ? »</summary><p>Compromis. Falcon (FN-DSA) : signature d'environ 666 octets et vérification très rapide, mais génération de clés et signature lourdes, arithmétique flottante délicate à protéger, et FIPS 206 encore en projet. ML-DSA : standard publié, mais signature de 2,4 à 4,6 Kio et RAM élevée pour signer en version rapide. Pour le firmware, les signatures à hash à état (LMS, SP 800-208) sont courantes : vérification légère, mais gestion de l'état à contrôler.</p></details>
+  <details><summary>« Et la sécurité physique ? »</summary><p>Les standards décrivent des algorithmes, pas des implémentations sûres. KyberSlash (ePrint 2024/1049) a montré une fuite par le temps de calcul : clé Kyber-768 retrouvée en moins de 4 minutes sur Cortex-M4. Le masquage a un coût que je n'ai pas pu chiffrer de façon fiable.</p></details>
+  <h3>Ce que je ne sais pas encore</h3>
+  <ul><li>Les tailles de messages d'EDHOC post-quantique (brouillons LAKE, sans tailles publiées dans ce que j'ai lu).</li><li>Une mesure d'énergie ML-KEM contre X25519 sur Cortex-M4.</li><li>Le surcoût fiable du masquage de ML-DSA.</li><li>La charge utile fiable de NB-IoT et LTE-M.</li></ul>
+</div>
+
+<!-- OT -->
+<div class="tabpanel" id="p-ot" role="tabpanel" aria-labelledby="t-ot" hidden>
+  <div class="card"><h3>30 secondes</h3><p>« En IT, on migre en quelques années parce qu'on peut mettre à jour. En OT, un équipement dure vingt ans, ne s'arrête pas pour un patch et parle parfois des protocoles sans authentification. La migration post-quantique y commence par l'inventaire et par un chemin de mise à jour signé, avant même de parler de chiffrement. »</p></div>
+  <details><summary>Version de 2 minutes</summary>
+  <p>Le NIST SP 800-82 donne trois à cinq ans de durée de vie en IT, souvent dix à quinze en OT, parfois plus de vingt. Les priorités s'inversent : sûreté, disponibilité, intégrité, confidentialité. Côté protocoles, Modbus classique n'a aucune authentification, DNP3 SAv5 authentifie par MAC sans chiffrer, OPC UA et Modbus/TCP Security reposent sur TLS et des certificats X.509. La menace « stocker maintenant, déchiffrer plus tard » vise la confidentialité ; en OT, les textes que j'ai lus insistent surtout sur l'intégrité : mises à jour de firmware signées, accès distant. La feuille de route européenne vise fin 2030 pour les systèmes à haut risque, mais c'est une recommandation, pas une obligation.</p></details>
+  <h3>Chiffres à connaître</h3>
+  <div class="grid g4">
+    <div class="card"><div class="stat">3–5</div><div class="stat-l">ans de vie en IT ; souvent 10–15 en OT, parfois &gt; 20 (NIST)</div></div>
+    <div class="card"><div class="stat">2030</div><div class="stat-l">systèmes à haut risque (feuille de route UE, non contraignante)</div></div>
+    <div class="card"><div class="stat">&lt; 1 M</div><div class="stat-l">qubits bruités pour RSA-2048 en moins d'une semaine (Gidney 2025)</div></div>
+    <div class="card"><div class="stat">28–49 %</div><div class="stat-l">de chance d'un CRQC sous 10 ans (GRI 2025, synthèse)</div></div>
+  </div>
+  <h3>Questions difficiles</h3>
+  <details><summary>« Pourquoi ne pas tout migrer d'ici 2030 ? »</summary><p>La durée de vie, les fenêtres de maintenance et l'absence de chemin de mise à jour sûr. La feuille de route européenne est elle-même graduée par niveau de risque : 2030 pour le haut risque, 2035 pour le risque moyen, et le faible risque autant que possible. C'est une recommandation non contraignante.</p></details>
+  <details><summary>« La menace HNDL touche-t-elle l'OT ? »</summary><p>Oui pour les données à longue confidentialité (propriété industrielle, données de procédé sensibles). Mais la valeur d'un équipement est souvent l'authenticité de ses commandes et de ses mises à jour, que l'inégalité de Mosca ne mesure pas. Trois sources (UE, NCSC, CISA) insistent sur l'intégrité et les signatures de firmware ; aucune ne classe explicitement l'authenticité avant la confidentialité.</p></details>
+  <details><summary>« Quand arrive l'ordinateur quantique ? »</summary><p>Personne ne le sait. Global Risk Institute 2025 : 28 à 49 % de chance sous 10 ans, 51 à 70 % sous 15 ans, selon 26 experts (page de synthèse). Gidney (2025) a réduit l'estimation pour RSA-2048 à moins d'un million de qubits bruités en moins d'une semaine, sous hypothèses précises. J'utilise des scénarios, pas une prévision.</p></details>
+  <h3>Ce que je ne sais pas encore</h3>
+  <ul><li>Position de l'OPC Foundation sur la PQC.</li><li>Durée de vie des relais de protection ; rôle exact de l'IEC 61508.</li><li>Impact PQC propre à chaque protocole : ce sont des inférences, sauf l'étude Bosch sur OPC UA.</li><li>Dates CRA et NIS 2 à reconfirmer sur EUR-Lex.</li></ul>
+</div>
+
+<!-- IEC -->
+<div class="tabpanel" id="p-iec" role="tabpanel" aria-labelledby="t-iec" hidden>
+  <div class="card"><h3>30 secondes</h3><p>« L'IEC 62443 organise la sécurité industrielle en zones, conduits et niveaux de sécurité, avec des parties pour l'exploitant, l'intégrateur et le fournisseur. Elle exige une cryptographie reconnue et bien gérée sans imposer d'algorithme. La PQC y entrera par les standards externes, et pèse surtout sur la PKI et l'intégrité logicielle. »</p></div>
+  <details><summary>Version de 2 minutes</summary>
+  <p>La série a quatre groupes : général, politiques et procédures, système, composant. L'exploitant lit 2-1 et 3-2, l'intégrateur 2-4 et 3-3, le fournisseur 4-1 et 4-2. Sept exigences fondamentales, de l'identification (FR 1) à la disponibilité (FR 7). Quatre niveaux de sécurité, définis par la force de l'attaquant : de l'erreur accidentelle (SL 1) à un acteur très outillé et motivé (SL 4). SL-T est la cible, SL-C la capacité, SL-A le niveau atteint. Sur la cryptographie, SR 4.3 s'applique à tous les niveaux : mécanismes reconnus, gestion de clés documentée. Je n'ai trouvé ni liste d'algorithmes ni exigence de crypto-agilité, ni mention de la PQC, et les normes sont payantes : c'est à confirmer.</p></details>
+  <h3>Chiffres à connaître</h3>
+  <div class="grid g4">
+    <div class="card"><div class="stat">4</div><div class="stat-l">groupes de parties</div></div>
+    <div class="card"><div class="stat">7</div><div class="stat-l">exigences fondamentales</div></div>
+    <div class="card"><div class="stat">SR 4.3</div><div class="stat-l">utilisation de la cryptographie (3-3)</div></div>
+    <div class="card"><div class="stat">ML 3–4</div><div class="stat-l">maturité requise pour certifier 4-1 (TÜV SÜD)</div></div>
+  </div>
+  <h3>Questions difficiles</h3>
+  <details><summary>« La 62443 impose-t-elle la PQC ? »</summary><p>Rien de ce que j'ai lu ne l'indique. Des vendeurs l'affirment ; je n'ai trouvé aucune position officielle d'ISA ou de l'IEC. La norme renvoie à des standards externes pour la cryptographie. Je ne l'ai pas lue en entier car elle est payante.</p></details>
+  <details><summary>« Quelle différence entre SL-T, SL-C et SL-A ? »</summary><p>Cible (issue de l'analyse de risque 3-2), capacité (ce que le système ou composant peut atteindre) et atteint (constaté après intégration). C'est la lecture usuelle ; je ne l'ai pas reconfirmée sur le texte.</p></details>
+  <details><summary>« Et le CRA ? »</summary><p>Il s'applique pleinement le 11 décembre 2027, avec des obligations de signalement dès le 11 septembre 2026. Je n'ai pas trouvé de norme harmonisée citée au Journal officiel qui lui soit rattachée ; prEN 50770 s'appuie sur la 62443 mais plusieurs parties pourraient ne pas être citées (source non officielle).</p></details>
+  <h3>Ce que je ne sais pas encore</h3>
+  <ul><li>Le texte exact de SR 4.3 et CR 4.3.</li><li>L'éventuel travail PQC d'ISA99 ou de l'IEC TC65.</li><li>Le statut de 4-1 et 4-2 vis-à-vis du CRA.</li><li>Les parties 1-2 et 1-3.</li></ul>
+</div>
+
+<!-- Fondamentaux -->
+<div class="tabpanel" id="p-gen" role="tabpanel" aria-labelledby="t-gen" hidden>
+  <div class="card"><h3>30 secondes</h3><p>« Un ordinateur quantique assez puissant casserait RSA et les courbes elliptiques avec l'algorithme de Shor. Comme des données chiffrées aujourd'hui peuvent être stockées pour être déchiffrées plus tard, on migre vers des algorithmes résistants : ML-KEM pour l'échange de clés, ML-DSA et SLH-DSA pour les signatures, standardisés par le NIST en 2024. L'ANSSI recommande de les combiner avec des algorithmes classiques, en mode hybride. »</p></div>
+  <details><summary>Version de 2 minutes</summary>
+  <p>Shor casse la factorisation et le logarithme discret ; Grover n'oblige qu'à doubler les tailles de clés symétriques. Trois standards publiés en 2024 : FIPS 203 (ML-KEM, réseaux), FIPS 204 (ML-DSA, réseaux), FIPS 205 (SLH-DSA, hash). FN-DSA (Falcon) est encore un projet et HQC (codes) est sélectionné depuis mars 2025. L'ANSSI recommande fortement l'hybridation, sans obligation réglementaire. La feuille de route européenne fixe 2026, 2030 et 2035 comme jalons. Et il faut distinguer la PQC, algorithmique, de la distribution quantique de clés, qui demande du matériel dédié.</p></details>
+  <h3>Chiffres à connaître</h3>
+  <div class="grid g4">
+    <div class="card"><div class="stat">203 · 204 · 205</div><div class="stat-l">FIPS publiés en 2024</div></div>
+    <div class="card"><div class="stat">2026 · 2030 · 2035</div><div class="stat-l">jalons de la feuille de route UE</div></div>
+    <div class="card"><div class="stat">mars 2025</div><div class="stat-l">sélection de HQC par le NIST</div></div>
+    <div class="card"><div class="stat">FIPS 206</div><div class="stat-l">FN-DSA : encore un projet</div></div>
+  </div>
+  <h3>Questions difficiles</h3>
+  <details><summary>« Pourquoi hybrider ? »</summary><p>Les schémas PQC sont plus récents que RSA et ECC : l'hybridation évite de dépendre d'un seul pari. L'ANSSI la recommande fortement, sans obligation, sauf pour les signatures à base de hash où elle ne la recommande pas systématiquement.</p></details>
+  <details><summary>« La PQC est-elle prête ? »</summary><p>Les standards de base le sont (FIPS 203, 204, 205). FN-DSA et HQC non. Côté déploiement, la normalisation des protocoles progresse mais reste partiellement en brouillon, notamment pour les objets contraints.</p></details>
+  <h3>Ce que je ne sais pas encore</h3>
+  <ul><li>Les dates ANSSI 2027 et 2030, rapportées par des articles sans texte officiel.</li><li>La position officielle de l'ANSSI sur la QKD.</li></ul>
+</div>
+</div>
+</section>
+
+<section>
+<h2 id="fiches">2. Fiches mémo</h2>
+<p>Cliquez sur « Voir la réponse », puis dites si vous la saviez. Votre progression est enregistrée dans ce navigateur uniquement.</p>
+<div class="tool" id="flash" style="padding:16px">
+  <div class="rowgap" style="justify-content:space-between;margin-bottom:6px">
+    <div class="tabs" style="margin:0"><button type="button" data-f="all" aria-pressed="true">Toutes</button><button type="button" data-f="iot" aria-pressed="false">Objets</button><button type="button" data-f="ot" aria-pressed="false">OT</button><button type="button" data-f="iec" aria-pressed="false">IEC 62443</button></div>
+    <div class="rowgap"><span class="fl-stat"></span><button type="button" class="btn sec" id="fl-reset" style="min-height:38px;padding:0 14px">Remettre à zéro</button></div>
+  </div>
+  <div class="fl-list" style="display:grid;gap:10px;margin-top:12px"></div>
+</div>
+</section>
+
+<section>
+<h2 id="chiffres">3. Tous les chiffres sur une page</h2>
+<div class="tw"><table style="min-width:640px">
+<thead><tr><th>Donnée</th><th class="n">Valeur</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>Clé publique X25519 / ML-KEM-768</td><td class="n">32 / 1 184 o</td><td><span class="badge b-prim">IETF</span></td></tr>
+<tr><td>Chiffré ML-KEM-768</td><td class="n">1 088 o</td><td><span class="badge b-prim">IETF</span></td></tr>
+<tr><td>Signature Ed25519 / ML-DSA-65</td><td class="n">64 / 3 309 o</td><td><span class="badge b-prim">IETF</span></td></tr>
+<tr><td>Signature FN-DSA-512 (projet)</td><td class="n">≈ 666 o</td><td><span class="badge b-sec">falcon-sign.info</span></td></tr>
+<tr><td>Signature LMS H10/W8 ; clé publique</td><td class="n">1 452 ; 56 o</td><td><span class="badge b-prim">RFC 8554</span></td></tr>
+<tr><td>Part TLS hybride client / serveur</td><td class="n">1 216 / 1 120 o</td><td><span class="badge b-sec">IETF, à confirmer</span></td></tr>
+<tr><td>Charge utile 802.15.4 après MAC et AES-CCM</td><td class="n">81 o</td><td><span class="badge b-prim">RFC 4944</span></td></tr>
+<tr><td>LoRaWAN EU868</td><td class="n">51 / 115 / 222 o</td><td><span class="badge b-sec">Semtech</span></td></tr>
+<tr><td>EDHOC complet</td><td class="n">101 à 242 o</td><td><span class="badge b-prim">RFC 9528</span></td></tr>
+<tr><td>ML-KEM-768 encapsulation (Cortex-M4)</td><td class="n">658 754 cycles</td><td><span class="badge b-prim">pqm4</span></td></tr>
+<tr><td>ML-DSA-65 pile de signature : rapide / minimale</td><td class="n">≈ 67 / 6,5 KiB</td><td><span class="badge b-prim">pqm4</span></td></tr>
+<tr><td>Classe 1 (RFC 7228)</td><td class="n">≈ 10 KiB RAM</td><td><span class="badge b-prim">RFC 7228</span></td></tr>
+<tr><td>Durée de vie OT</td><td class="n">10–15, parfois &gt; 20 ans</td><td><span class="badge b-prim">NIST 800-82r3</span></td></tr>
+<tr><td>Jalons UE</td><td class="n">2026 · 2030 · 2035</td><td><span class="badge b-prim">Commission</span></td></tr>
+<tr><td>CRA : signalement ; application complète</td><td class="n">11/09/2026 ; 11/12/2027</td><td><span class="badge b-sec">EUR-Lex non lu</span></td></tr>
+<tr><td>CRQC sous 10 ans (GRI 2025)</td><td class="n">28 à 49 %</td><td><span class="badge b-sec">synthèse</span></td></tr>
+</tbody></table></div>
+</section>
+
+<section>
+<h2 id="glossaire">4. Glossaire</h2>
+<div id="glossary"><div class="search"><input type="search" placeholder="Rechercher un terme (KEM, Purdue, SR 4.3…)" aria-label="Rechercher dans le glossaire"><span class="gl-count sub" style="color:var(--fg-3)"></span></div><div class="gl-list"></div></div>
+</section>
+
+</article>
+</div>
+</main>
+
+<div id="site-footer"></div>
+<nav id="site-tabbar"></nav>
+<script src="assets/glossary.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/tools.js"></script>
+</body>
+</html>
